@@ -1,0 +1,9 @@
+{
+  "name": "news-report",
+  "description": "Sector-agnostic news report engine. Generic scraper + ranking + enrichment pipeline. Consumers add sector skills that specify topic, sources, time window and audience lens.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Galileo14",
+    "url": "https://galileo14.com"
+  }
+}
