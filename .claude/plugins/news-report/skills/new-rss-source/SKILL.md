@@ -22,7 +22,7 @@ Ask the user, in plain text or with `AskUserQuestion`:
 2. **Adapter slug** — propose `<lowercase_snake_case>` (e.g. `the_verge`, `ars_technica`, `anthropic`, `huggingface`). Validate: `^[a-z][a-z0-9_]*$`, ≤30 chars, not already in `registry.ts`. Show your proposal and let the user override.
 3. **Topical scope** — does the publication post mostly about AI / tech / general news / a niche? (Used later for `tags`.) Free text or a short list.
 
-Skim `${CLAUDE_PLUGIN_ROOT}/scripts/rss-scraper/registry.ts` and the existing adapters to make sure the slug is unique and to mimic naming conventions (`new_york_times`, `the_information`, etc.).
+Skim `${CLAUDE_PLUGIN_ROOT}/scripts/rss-scraper/registry.ts` to make sure the slug is unique. Follow lowercase snake_case for multi-word names (e.g. `the_verge`, `new_york_times`, `hugging_face`).
 
 ### Step 2 — Discover the RSS feed(s)
 
@@ -108,26 +108,18 @@ Edit `${CLAUDE_PLUGIN_ROOT}/scripts/rss-scraper/registry.ts`:
 1. Add the import alphabetically with the other adapter imports.
 2. Append the camelCase variable to the `adapters` array.
 
-Example after adding `the_verge`:
+Example after adding `the_verge` (first adapter — registry starts empty):
 
 ```typescript
-import { bloomberg } from './adapters/bloomberg.ts'
-import { newYorkTimes } from './adapters/new_york_times.ts'
-import { openai } from './adapters/openai.ts'
-import { techcrunch } from './adapters/techcrunch.ts'
-import { theInformation } from './adapters/the_information.ts'
 import { theVerge } from './adapters/the_verge.ts'
 import type { Adapter } from './types.ts'
 
 export const adapters: Adapter[] = [
-  openai,
-  techcrunch,
-  bloomberg,
-  theInformation,
-  newYorkTimes,
   theVerge,
 ]
 ```
+
+When more adapters already exist, keep imports alphabetical and append the new variable to the array.
 
 ### Step 6 — Smoke-test
 

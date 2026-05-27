@@ -18,8 +18,12 @@ scripts/rss-scraper/
 ├── fetcher.ts                # fetch all feeds of an adapter
 ├── registry.ts               # list of available adapters
 └── adapters/
-    └── new_york_times.ts
+    └── <your_source>.ts      # add with /new-rss-source (none ship by default)
 ```
+
+The plugin ships with **no adapters registered**. Add your own with the
+`/new-rss-source` skill (or by hand — see "Adding a source" below) before
+running the scraper.
 
 ## Usage
 
@@ -28,7 +32,7 @@ scripts/rss-scraper/
 node scrape.ts
 
 # one source only
-node scrape.ts --source new_york_times
+node scrape.ts --source <source_name>
 
 # filter by adapter-provided tag
 node scrape.ts --tag ai-candidate
@@ -68,7 +72,7 @@ The adapter is free to:
 
 ```ts
 type NewsItem = {
-  source: string         // 'new_york_times'
+  source: string         // adapter slug, e.g. 'your_source'
   feedUrl: string        // origin feed
   title: string
   url: string

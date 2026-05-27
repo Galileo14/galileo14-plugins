@@ -4,7 +4,7 @@
  * `NewsItem[]` as JSON.
  *
  *   bun run scripts/rss-scraper/scrape.ts
- *   bun run scripts/rss-scraper/scrape.ts --source new_york_times
+ *   bun run scripts/rss-scraper/scrape.ts --source <source_name>
  *   bun run scripts/rss-scraper/scrape.ts --tag ai-candidate
  *   bun run scripts/rss-scraper/scrape.ts --keyword "AI,artificial intelligence"
  *   bun run scripts/rss-scraper/scrape.ts --output reports/news.json

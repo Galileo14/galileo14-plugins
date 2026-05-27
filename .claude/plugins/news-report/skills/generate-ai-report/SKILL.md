@@ -8,6 +8,8 @@ user-invocable: true
 
 Research today's news on **AI tools and products** and produce a ranked report with TL;DR + top stories.
 
+> **Prerequisite**: this plugin ships with **no RSS adapters registered**. Add at least one AI-relevant source with `/new-rss-source` (e.g. `openai`, `anthropic`, `techcrunch`, `the_verge`, `simon_willison`, …) before invoking this skill. If `adapters` is empty the pipeline returns no items.
+
 ## Editorial focus
 
 The report answers one question: **what new AI tool or product deserves the attention of someone who builds, tests, or adopts AI?**
@@ -37,7 +39,7 @@ Out of scope:
 | `sector`       | `ai`                                                                                      |
 | `window`       | Default: yesterday + today (UTC). `since = today − 1`. Override if the user asks.         |
 | `keywords`     | `AI, A.I., artificial intelligence, machine learning, LLM, large language model, GPT, ChatGPT, Claude, Gemini, OpenAI, Anthropic, DeepMind, Mistral, DeepSeek, xAI, agent, agentic, RAG, embedding, fine-tuning, generative, neural network` |
-| `sources`      | Empty → all registered adapters.                                                          |
+| `sources`      | `[]` by default → use every adapter registered in `scripts/rss-scraper/registry.ts`. Override with `--sources slug1,slug2` to restrict to a subset. |
 | `top_n`        | `5` by default.                                                                           |
 | `output_dir`   | `content/news/<today>-ai/`                                                                |
 | `output_lang`  | `es` — write the report in Spanish (see localization note below).                        |
@@ -112,6 +114,6 @@ Tone: Spain Spanish, technical-pragmatic, no anglicism overuse ("herramienta" no
 
 - `/generate-ai-report --since 2026-05-20` → wider window.
 - `/generate-ai-report --top 8` → more stories.
-- `/generate-ai-report --sources openai,techcrunch` → restrict adapters.
+- `/generate-ai-report --sources slug1,slug2` → restrict to a subset of registered adapters (use the slugs from `scripts/rss-scraper/registry.ts`).
 
 When the user passes overrides, substitute them in the subagent prompt.
