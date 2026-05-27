@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "author": {
     "name": "Galileo14",
-    "url": "https://galileo14.com"
-  }
+    "email": "info@galileo14.com"
+  },
+  "homepage": "https://galileo14.com",
+  "repository": "https://github.com/Galileo14/galileo14-plugins",
+  "license": "MIT",
+  "keywords": ["news", "rss", "report", "research", "daily-digest", "scraper", "ai-news"]
 }

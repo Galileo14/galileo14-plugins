@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
   "name": "galileo14",
-  "description": "Galileo14's public plugin marketplace for Claude Code.",
+  "description": "Galileo14's plugin marketplace — AI-native tools for research, reporting and knowledge work. Built by galileo14.com.",
   "owner": {
     "name": "Galileo14",
     "email": "info@galileo14.com"
