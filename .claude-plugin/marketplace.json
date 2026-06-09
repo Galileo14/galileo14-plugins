@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "news-report",
-      "source": "./.claude/plugins/news-report",
+      "source": "./plugins/news-report",
       "description": "Sector-agnostic daily news report engine. Generic scraper + ranking + enrichment pipeline; consumers add sector skills (topic, sources, time window, audience lens).",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
       "repository": "https://github.com/Galileo14/galileo14-plugins",
