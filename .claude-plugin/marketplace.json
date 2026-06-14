@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "galileo14",
+  "name": "galileo14-plugins",
   "description": "Galileo14's plugin marketplace — AI-native tools for research, reporting and knowledge work. Built by galileo14.com.",
   "owner": {
     "name": "Galileo14",
