@@ -8,17 +8,30 @@
   },
   "plugins": [
     {
-      "name": "news-report",
-      "source": "./plugins/news-report",
-      "description": "Sector-agnostic daily news report engine. Generic scraper + ranking + enrichment pipeline; consumers add sector skills (topic, sources, time window, audience lens).",
+      "name": "research",
+      "source": "./plugins/research",
+      "description": "Research and intelligence gathering: company dossiers, deep multi-source research, fact-checking and quick panoramic searches. Fans out platform-specific researcher agents in parallel and grades the result before delivery. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
       "repository": "https://github.com/Galileo14/galileo14-plugins",
       "author": {
         "name": "Galileo14",
         "email": "info@galileo14.com"
       },
-      "category": "productivity",
-      "keywords": ["news", "rss", "report", "research", "daily-digest"]
+      "category": "research",
+      "keywords": ["research", "company-analysis", "fact-check", "web-search", "dossier"]
+    },
+    {
+      "name": "ai",
+      "source": "./plugins/ai",
+      "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks) and deterministic skill scaffolding. Output adapts to the user's language.",
+      "homepage": "https://github.com/Galileo14/galileo14-plugins",
+      "repository": "https://github.com/Galileo14/galileo14-plugins",
+      "author": {
+        "name": "Galileo14",
+        "email": "info@galileo14.com"
+      },
+      "category": "ai-tooling",
+      "keywords": ["prompt-engineering", "skills", "claude", "meta-tooling", "scaffolding"]
     }
   ]
 }

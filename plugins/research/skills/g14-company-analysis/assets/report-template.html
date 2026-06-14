@@ -1,0 +1,1827 @@
+<!doctype html>
+<!--
+  TEMPLATE COMPANY-RESEARCH — Galileo14 (tema claro, app-shell con sidebar).
+
+  Reglas para rellenar:
+   - Rellena CADA {{SLOT}}. Si una sección no tiene datos, usa el componente .empty-dim (ver más abajo).
+   - NO modifiques el <style>, ni las clases, ni la estructura de las secciones.
+   - El header, los IDs (id="d01-website" … id="d10-crunchbase", id="executive-summary", id="cross-signals") y el orden son INMUTABLES.
+   - Para listas / tablas / sources, repite el bloque marcado con <!-- repeat --> tantas veces como necesites. BORRA los comentarios <!-- repeat --> después.
+   - Marca afirmaciones que el test anti-alucinación haya marcado como UNVERIFIED envolviéndolas en <mark data-unverified="true">...</mark>.
+   - Marca URLs con problemas de alcance con class="source-warning" en el <a>.
+   - Para barras de distribución de estrellas (Trustpilot) y métricas de rating, los slots con porcentajes deben rellenarse con el valor numérico + "%" (ej. "73%") — el CSS los usa como ancho de barra.
+
+  REGLA DE EMPTY STATES — importante:
+   Cuando una dimensión devuelva "sin presencia" / "sin perfil" / "0 fuentes útiles", NO rellenes las h3+listas/tablas/cards con texto plano. En su lugar, REEMPLAZA todo el cuerpo de esa <section> (después del .dimension-header y la .micro-meta) por un único bloque <div class="empty-dim">:
+     <div class="empty-dim">
+       <div class="empty-dim-icon">○</div>
+       <div class="empty-dim-title">Sin presencia detectable en {{plataforma}}</div>
+       <div class="empty-dim-sub">{{nota corta}} — ej. "10 queries ejecutadas · 0 hilos relevantes"</div>
+     </div>
+   Esto es coherente con "no inventes contenido" y produce un placeholder visual elegante.
+
+  REGLA DE STATUS DOTS DEL SIDEBAR — importante:
+   Cada .nav-item del sidebar lleva clase de estado por defecto .status-pending. CAMBIA la clase a:
+     - .status-rich   → si el findings de esa dimensión tiene contenido sólido (varios datos confirmados, citas reales)
+     - .status-limited → si el findings tiene datos parciales / bloqueos / contenido escaso
+     - .status-empty  → si la dimensión devolvió "sin presencia"
+   El dot a la derecha del item cambia de color sin texto adicional.
+
+  REGLA DE ENLAZADO — importante:
+   Cuando rellenes los slots, enlaza todo lo que tenga URL disponible:
+     - Personas con LinkedIn extraído en findings → <a href="URL_linkedin">Nombre</a>
+     - Empresas mencionadas con dominio en findings → <a href="https://dominio">Nombre</a>
+     - Productos / eventos con URL → enlace al recurso
+     - Direcciones físicas → SIEMPRE genera link a Google Maps con
+       <a href="https://www.google.com/maps/search/?api=1&query=DIRECCION_URL_ENCODED">dirección</a>
+     - Sin URL → texto plano. NO inventes URLs de búsqueda automática.
+   El CSS de los <a> en .dim-body / .fact-value / .testimonial / .snap-card / .dimension-lead los pinta en violet con border-bottom sutil — son visibles pero no rompen el ritmo de lectura.
+
+  Borra este bloque de comentario entero antes de entregar.
+-->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Galileo14 · Company Research — {{COMPANY_NAME}}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+      /* ─── Tokens marca Galileo14 (tema claro) ─── */
+      :root {
+        --bg: #ffffff;
+        --surface: #fafafa;
+        --surface-2: #f4f4f5;
+        --surface-hover: #ececee;
+
+        --border: rgba(0, 0, 0, 0.14);
+        --border-strong: rgba(0, 0, 0, 0.24);
+
+        --text: #1a1a1a;
+        --text-secondary: #3f3f3f;
+        --text-muted: #6b6b6b;
+        --text-inverse: #fafafa;
+
+        --primary: #4f39ff;
+        --primary-hover: #3a26e6;
+        --primary-soft: rgba(79, 57, 255, 0.10);
+        --primary-ring: rgba(79, 57, 255, 0.30);
+
+        --green: #16a34a;
+        --green-soft: rgba(22, 163, 74, 0.10);
+        --red: #dc2626;
+        --red-soft: rgba(220, 38, 38, 0.10);
+        --amber: #d97706;
+        --amber-soft: rgba(217, 119, 6, 0.10);
+
+        --radius-sm: 4px;
+        --radius: 8px;
+        --radius-lg: 12px;
+        --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+        --shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.05);
+
+        --sans: "Geist", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        --mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+
+      html, body { max-width: 100vw; overflow-x: clip; }
+      body {
+        font-family: var(--sans);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.55;
+        font-feature-settings: "ss01", "ss02", "cv11";
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      ::selection { background: var(--primary); color: #fff; }
+      :focus-visible { outline: 2px solid var(--primary-ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+      a { color: var(--primary); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+
+      /* Links dentro de cuerpos de texto: subrayado violet sutil que NO compite con la lectura
+         pero deja claro que es clicable. Las clases especializadas (.sources-list a, .wordmark,
+         .nav-item) ya tienen sus propios estilos y NO heredan estos. */
+      .dim-body a,
+      .dimension-lead a,
+      .testimonial-quote a,
+      .fact-value a,
+      .snap-card a,
+      .snap-card-headline a,
+      .snap-card-sub a,
+      .report-hero-meta dd a,
+      .data-table a,
+      .signal-box a,
+      .signal-final a,
+      .micro-meta a,
+      .footer-col a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1px solid var(--primary-ring);
+        transition: border-color 0.15s var(--ease);
+      }
+      .dim-body a:hover,
+      .dimension-lead a:hover,
+      .testimonial-quote a:hover,
+      .fact-value a:hover,
+      .snap-card a:hover,
+      .snap-card-headline a:hover,
+      .snap-card-sub a:hover,
+      .report-hero-meta dd a:hover,
+      .data-table a:hover,
+      .signal-box a:hover,
+      .signal-final a:hover,
+      .micro-meta a:hover,
+      .footer-col a:hover {
+        border-bottom-color: var(--primary);
+        text-decoration: none;
+      }
+
+      /* ─── Brand wordmark ─── */
+      .wordmark {
+        font-family: var(--sans);
+        font-weight: 900;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        color: var(--text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: baseline;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .wordmark b { color: var(--primary); font-weight: inherit; }
+      .wordmark-xl {
+        font-size: clamp(3.5rem, 9vw, 7rem);
+        letter-spacing: -0.045em;
+        line-height: 0.88;
+        font-weight: 900;
+      }
+
+      /* ─── App shell (sidebar 300px + main 1fr, viewport-bound) ─── */
+      .app {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .sidebar {
+        background: var(--bg);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .sidebar-top {
+        padding: 1.5rem 1.25rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 0.625rem;
+      }
+      .sidebar-kicker {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .sidebar-kicker::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        background: var(--primary);
+      }
+      .sidebar-company {
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: -0.01em;
+        color: var(--text);
+        line-height: 1.25;
+        margin-top: 0.25rem;
+      }
+
+      .nav-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem 0.625rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .nav-item {
+        position: relative;
+        display: grid;
+        grid-template-columns: 28px 1fr 12px;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.5625rem 0.75rem;
+        border-radius: var(--radius-sm);
+        text-decoration: none;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.2;
+        border: 1px solid transparent;
+        transition: background 0.12s var(--ease), color 0.12s var(--ease), border-color 0.12s var(--ease);
+      }
+      .nav-item:hover { background: var(--surface); color: var(--text); text-decoration: none; }
+      .nav-item:target,
+      .nav-item.active {
+        background: var(--primary-soft);
+        color: var(--primary);
+        border-color: var(--primary-ring);
+      }
+      .nav-num {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-align: center;
+        letter-spacing: 0.04em;
+      }
+      .nav-item:hover .nav-num,
+      .nav-item:target .nav-num { color: var(--primary); }
+      .nav-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 0.625rem 0.5rem;
+      }
+
+      /* Status dots — el synthesizer cambia la clase del nav-item según la riqueza del findings */
+      .nav-status {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: var(--border);
+      }
+      .nav-item.status-rich    .nav-status { background: var(--green); }
+      .nav-item.status-limited .nav-status { background: var(--amber); }
+      .nav-item.status-empty   .nav-status { background: var(--border); }
+      .nav-item.status-pending .nav-status { background: var(--border); opacity: 0.5; }
+
+      .sidebar-foot {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .sidebar-foot .legend {
+        display: flex;
+        gap: 0.75rem;
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .sidebar-foot .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .sidebar-foot .legend span::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+      }
+      .sidebar-foot .legend .lg-rich::before    { background: var(--green); }
+      .sidebar-foot .legend .lg-limited::before { background: var(--amber); }
+      .sidebar-foot .legend .lg-empty::before   { background: var(--border); }
+
+      .main {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--surface);
+      }
+      .main::after {
+        content: "G14";
+        position: absolute;
+        bottom: -1.5rem;
+        right: 1.5rem;
+        font-family: var(--sans);
+        font-weight: 900;
+        font-size: clamp(8rem, 22vw, 20rem);
+        line-height: 0.85;
+        letter-spacing: -0.05em;
+        color: var(--surface-2);
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+      }
+      .main-content {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+      }
+      .main-inner {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 4rem 3rem 6rem;
+      }
+
+      /* ─── Hero ─── */
+      .report-hero {
+        position: relative;
+        margin-bottom: 3.5rem;
+        padding-bottom: 2.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .hero-eyebrow {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        margin-bottom: 1.5rem;
+      }
+      .hero-eyebrow::before {
+        content: "";
+        width: 28px;
+        height: 2px;
+        background: var(--primary);
+      }
+      .hero-report-id {
+        position: absolute;
+        top: 0;
+        right: 0;
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .report-hero h1 {
+        font-family: var(--sans);
+        font-size: clamp(2.75rem, 6vw, 5rem);
+        font-weight: 800;
+        line-height: 0.96;
+        letter-spacing: -0.035em;
+        color: var(--text);
+        margin-bottom: 1.25rem;
+        position: relative;
+      }
+      .report-hero h1::first-letter { font-weight: 900; }
+      .report-hero h1::after {
+        content: "";
+        display: block;
+        width: 72px;
+        height: 4px;
+        background: var(--primary);
+        margin-top: 1.25rem;
+      }
+      .report-hero .lead {
+        font-size: 1.1875rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        max-width: 58ch;
+        margin-bottom: 2.5rem;
+      }
+      .report-hero-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 1.5rem 2rem;
+      }
+      .report-hero-meta dt {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.375rem;
+      }
+      .report-hero-meta dd {
+        font-size: 0.9375rem;
+        color: var(--text);
+        font-weight: 500;
+        word-break: break-word;
+      }
+
+      /* ─── Executive snapshot dashboard ─── */
+      .exec-snapshot {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        margin-bottom: 4rem;
+      }
+      .snap-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.375rem 1.375rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.875rem;
+      }
+      .snap-card-label {
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .snap-card-label::before {
+        content: "";
+        width: 4px;
+        height: 4px;
+        background: var(--primary);
+      }
+      .snap-card-headline {
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        line-height: 1.15;
+        word-break: break-word;
+      }
+      .snap-card-sub {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+      }
+      .snap-mini-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        margin-top: 0.375rem;
+      }
+      .snap-mini-row {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: 0.625rem;
+        align-items: center;
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+      .snap-mini-bar {
+        height: 4px;
+        background: var(--surface-2);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .snap-mini-bar-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
+      }
+
+      /* ─── Tags ─── */
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        font-family: var(--sans);
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1;
+        padding: 0.3125rem 0.5rem;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-strong);
+        color: var(--text-secondary);
+        background: transparent;
+      }
+      .tag-primary {
+        color: var(--primary);
+        border-color: var(--primary-ring);
+        background: var(--primary-soft);
+      }
+      .tag-mono {
+        font-family: var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.6875rem;
+      }
+      .tag-success {
+        color: var(--green);
+        border-color: rgba(22, 163, 74, 0.30);
+        background: var(--green-soft);
+      }
+      .tag-warning {
+        color: var(--amber);
+        border-color: rgba(217, 119, 6, 0.30);
+        background: var(--amber-soft);
+      }
+      .tag-muted {
+        color: var(--text-muted);
+        border-color: var(--border);
+      }
+
+      /* ─── Banner advertencia ─── */
+      .banner {
+        border: 1px solid var(--amber);
+        background: var(--amber-soft);
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius);
+        margin-bottom: 3rem;
+        font-size: 0.9375rem;
+        color: var(--text);
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+      }
+      .banner::before {
+        content: "⚠";
+        color: var(--amber);
+        font-size: 1.25rem;
+        line-height: 1;
+        flex-shrink: 0;
+        margin-top: 0.0625rem;
+      }
+      .banner strong { color: var(--amber); }
+
+      /* ─── Dimension section ─── */
+      .dimension {
+        padding: 4rem 0;
+        border-top: 1px solid var(--border);
+        scroll-margin-top: 2rem;
+      }
+      .dimension:first-of-type { border-top: none; padding-top: 0; }
+      .dimension-header {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1.5rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .dimension-num {
+        font-family: var(--mono);
+        font-size: 2.25rem;
+        font-weight: 500;
+        color: var(--primary);
+        line-height: 1;
+        letter-spacing: -0.04em;
+        font-variant-numeric: tabular-nums;
+        padding: 0.625rem 0.875rem;
+        border: 2px solid var(--primary);
+        border-radius: var(--radius);
+        background: transparent;
+        min-width: 88px;
+        text-align: center;
+      }
+      .dimension-title {
+        font-family: var(--sans);
+        font-size: 2rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        line-height: 1.1;
+      }
+      .micro-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.375rem 0.625rem;
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+      }
+      .micro-meta .mm-chip {
+        padding: 0.25rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+      }
+      .micro-meta .mm-chip.is-rich    { color: var(--green); border-color: rgba(22, 163, 74, 0.30); }
+      .micro-meta .mm-chip.is-limited { color: var(--amber); border-color: rgba(217, 119, 6, 0.30); }
+      .micro-meta .mm-chip.is-empty   { color: var(--text-muted); }
+      .micro-meta .mm-sep { color: var(--border-strong); }
+
+      .dimension-lead {
+        font-size: 1.0625rem;
+        color: var(--text-secondary);
+        line-height: 1.55;
+        margin-bottom: 2rem;
+        max-width: 68ch;
+      }
+      .dim-h3 {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin: 2rem 0 0.75rem;
+        padding-bottom: 0.375rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .dim-h3::before {
+        content: "";
+        width: 4px;
+        height: 4px;
+        background: var(--primary);
+      }
+
+      .dim-body { color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.65; }
+      .dim-body p { margin-bottom: 0.75rem; max-width: 68ch; }
+      .dim-body ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+      .dim-body li { margin-bottom: 0.375rem; }
+      .dim-body li::marker { color: var(--primary); }
+      .dim-body strong { color: var(--text); font-weight: 600; }
+
+      /* ─── Empty state component (cuando una dimensión no tiene datos) ─── */
+      .empty-dim {
+        margin: 1.5rem 0 0;
+        padding: 3rem 2rem;
+        background: var(--bg);
+        border: 1px dashed var(--border-strong);
+        border-radius: var(--radius);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0.625rem;
+      }
+      .empty-dim-icon {
+        font-size: 2.5rem;
+        line-height: 1;
+        color: var(--text-muted);
+        opacity: 0.45;
+        margin-bottom: 0.5rem;
+        font-weight: 300;
+      }
+      .empty-dim-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        letter-spacing: -0.01em;
+      }
+      .empty-dim-sub {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+      }
+
+      /* ─── Fact cards ─── */
+      .fact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 0.875rem;
+        margin: 1rem 0 0;
+      }
+      .fact-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.125rem 1.25rem;
+        transition: border-color 0.15s var(--ease);
+      }
+      .fact-card:hover { border-color: var(--border-strong); }
+      .fact-card .fact-label {
+        display: block;
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+      .fact-card .fact-value {
+        display: block;
+        font-size: 1.375rem;
+        font-weight: 600;
+        color: var(--text);
+        letter-spacing: -0.015em;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.15;
+        word-break: break-word;
+      }
+
+      /* ─── Dashboard metrics ─── */
+      .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 0.5rem 0 1rem;
+      }
+      .metric {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.375rem;
+      }
+      .metric-label {
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.625rem;
+      }
+      .metric-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--text);
+        letter-spacing: -0.025em;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        word-break: break-word;
+      }
+      .metric-value small {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin-left: 0.25rem;
+        letter-spacing: 0;
+      }
+      .metric-sub {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+        line-height: 1.4;
+      }
+      .metric-progress {
+        margin-top: 0.875rem;
+        height: 6px;
+        background: var(--surface-2);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .metric-progress-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
+        transition: width 0.4s var(--ease);
+      }
+
+      /* ─── Star distribution ─── */
+      .star-distribution {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 0.5rem 0 1.25rem;
+      }
+      .star-row {
+        display: grid;
+        grid-template-columns: 36px 1fr 52px;
+        gap: 0.75rem;
+        align-items: center;
+        font-size: 0.8125rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .star-label {
+        font-family: var(--mono);
+        color: var(--text-muted);
+        text-align: right;
+      }
+      .star-bar-track {
+        height: 8px;
+        background: var(--surface-2);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .star-bar-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 999px;
+        transition: width 0.4s var(--ease);
+      }
+      .star-row.s5 .star-bar-fill { background: var(--green); }
+      .star-row.s4 .star-bar-fill { background: #65a30d; }
+      .star-row.s3 .star-bar-fill { background: var(--amber); }
+      .star-row.s2 .star-bar-fill { background: #ea580c; }
+      .star-row.s1 .star-bar-fill { background: var(--red); }
+      .star-pct {
+        font-family: var(--mono);
+        color: var(--text);
+        font-weight: 500;
+      }
+
+      /* ─── Data table ─── */
+      .table-wrapper { overflow-x: auto; margin: 0.5rem 0 1.25rem; }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .data-table thead th {
+        background: var(--surface-2);
+        text-align: left;
+        padding: 0.625rem 0.875rem;
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        font-weight: 600;
+        border-bottom: 1px solid var(--border);
+      }
+      .data-table tbody td {
+        padding: 0.625rem 0.875rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-secondary);
+        vertical-align: top;
+      }
+      .data-table tbody tr:nth-child(even) td { background: var(--surface); }
+      .data-table tbody tr:last-child td { border-bottom: none; }
+      .data-table tbody td:first-child { color: var(--text); font-weight: 500; }
+
+      /* ─── Testimonial ─── */
+      .testimonial {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--primary);
+        border-radius: 0 var(--radius) var(--radius) 0;
+        padding: 1.25rem 1.5rem 1.125rem 1.5rem;
+        margin: 0.625rem 0;
+        position: relative;
+      }
+      .testimonial::before {
+        content: "\201C";
+        position: absolute;
+        top: 0.25rem;
+        right: 1rem;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 4rem;
+        line-height: 1;
+        color: var(--primary);
+        opacity: 0.25;
+        pointer-events: none;
+      }
+      .testimonial-quote {
+        font-size: 0.9375rem;
+        color: var(--text);
+        line-height: 1.55;
+        margin-bottom: 0.625rem;
+        position: relative;
+        z-index: 1;
+      }
+      .testimonial-meta {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 0.75rem;
+        margin: 0.5rem 0 1rem;
+      }
+
+      /* ─── Sources ─── */
+      .sources {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px dashed var(--border-strong);
+      }
+      .sources-label {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+      }
+      .sources-list {
+        list-style: none;
+        padding: 0;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .sources-list li { word-break: break-all; }
+      .sources-list a {
+        color: var(--primary);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.15s var(--ease);
+      }
+      .sources-list a:hover { border-bottom-color: var(--primary); text-decoration: none; }
+      .sources-list a.source-warning { color: var(--amber); }
+      .sources-list a.source-warning::after { content: " ⚠"; }
+
+      /* ─── Anti-hallucination marker ─── */
+      mark[data-unverified="true"] {
+        background: var(--amber-soft);
+        color: var(--text);
+        padding: 1px 4px;
+        border-radius: var(--radius-sm);
+        border-bottom: 1px dashed var(--amber);
+      }
+      mark[data-unverified="true"]::after {
+        content: " ⚠";
+        color: var(--amber);
+        font-size: 0.6875rem;
+        vertical-align: 6px;
+        font-family: var(--mono);
+      }
+
+      /* ─── Cross-signals boxes ─── */
+      .signals-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .signal-box {
+        padding: 1.25rem 1.375rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--bg);
+      }
+      .signal-box h4 {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .signal-box h4::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+      }
+      .signal-box ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+      .signal-box li {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        padding-left: 1rem;
+        position: relative;
+      }
+      .signal-box li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.5rem;
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+      }
+      .signal-box p { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.55; }
+
+      .signal-convergence { background: var(--green-soft); border-color: rgba(22, 163, 74, 0.25); }
+      .signal-convergence h4 { color: var(--green); }
+      .signal-convergence h4::before { background: var(--green); }
+      .signal-convergence li::before { background: var(--green); }
+
+      .signal-contradiction { background: var(--amber-soft); border-color: rgba(217, 119, 6, 0.25); }
+      .signal-contradiction h4 { color: var(--amber); }
+      .signal-contradiction h4::before { background: var(--amber); }
+      .signal-contradiction li::before { background: var(--amber); }
+
+      .signal-redflag { background: var(--red-soft); border-color: rgba(220, 38, 38, 0.25); }
+      .signal-redflag h4 { color: var(--red); }
+      .signal-redflag h4::before { background: var(--red); }
+      .signal-redflag li::before { background: var(--red); }
+
+      .signal-final {
+        margin-top: 1rem;
+        padding: 1.5rem 1.75rem;
+        background: var(--bg);
+        border: 1px solid var(--border-strong);
+        border-left: 3px solid var(--primary);
+        border-radius: var(--radius);
+      }
+      .signal-final h4 {
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--primary);
+        margin-bottom: 0.75rem;
+      }
+      .signal-final p {
+        font-size: 1rem;
+        color: var(--text);
+        line-height: 1.6;
+        max-width: 70ch;
+      }
+
+      /* ─── Report footer (3 columnas) ─── */
+      .report-footer {
+        margin-top: 6rem;
+        padding-top: 3rem;
+        border-top: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+        gap: 2.5rem 3rem;
+        align-items: end;
+      }
+      .footer-col h5 {
+        font-family: var(--mono);
+        font-size: 0.625rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+        margin-bottom: 0.625rem;
+        font-weight: 500;
+      }
+      .footer-col p {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      .footer-col p + p { margin-top: 0.25rem; }
+      .footer-col-brand .wordmark-xl { color: var(--text); display: block; margin-bottom: 0.875rem; }
+      .footer-col-brand .footer-tagline {
+        font-family: var(--mono);
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--text-muted);
+      }
+
+      /* ─── Mobile ─── */
+      @media (max-width: 900px) {
+        .app { grid-template-columns: 1fr; height: auto; overflow: visible; }
+        .sidebar {
+          height: auto;
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: var(--bg);
+        }
+        .nav-list { max-height: 240px; }
+        .main { overflow: visible; }
+        .main::after { font-size: 8rem; bottom: -1rem; right: 0.75rem; }
+        .main-content { overflow: visible; }
+        .main-inner { padding: 2.5rem 1.5rem 4rem; }
+        .hero-report-id { position: static; display: block; margin-bottom: 1rem; }
+        .dimension-header { grid-template-columns: 1fr; gap: 0.875rem; }
+        .dimension-num { font-size: 1.75rem; min-width: 64px; padding: 0.5rem 0.75rem; justify-self: start; }
+        .dimension-title { font-size: 1.5rem; }
+        .report-footer { grid-template-columns: 1fr; gap: 2rem; }
+      }
+
+      /* ─── Print ─── */
+      @media print {
+        .sidebar, .main::after { display: none; }
+        .app { display: block; }
+        .main { overflow: visible; background: #fff; }
+        .main-content { overflow: visible; }
+        .main-inner { padding: 0; max-width: 100%; }
+        .dimension { break-inside: avoid; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app">
+
+      <!-- ─── SIDEBAR ─── -->
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <a href="https://galileo14.com" class="wordmark">Galileo<b>14</b></a>
+          <div class="sidebar-kicker">Company Research</div>
+          <div class="sidebar-company">{{COMPANY_NAME}}</div>
+        </div>
+
+        <nav class="nav-list">
+          <a class="nav-item status-pending" href="#executive-summary"><span class="nav-num">00</span><span>Resumen ejecutivo</span><span class="nav-status"></span></a>
+          <div class="nav-divider"></div>
+          <a class="nav-item status-pending" href="#d01-website"><span class="nav-num">01</span><span>Web propia</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d02-google-search"><span class="nav-num">02</span><span>Imagen pública</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d03-linkedin"><span class="nav-num">03</span><span>LinkedIn</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d04-reddit"><span class="nav-num">04</span><span>Reddit</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d05-trustpilot"><span class="nav-num">05</span><span>Trustpilot</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d06-google-maps"><span class="nav-num">06</span><span>Google Maps</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d07-glassdoor"><span class="nav-num">07</span><span>Cultura interna</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d08-youtube"><span class="nav-num">08</span><span>YouTube</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d09-news"><span class="nav-num">09</span><span>Prensa reciente</span><span class="nav-status"></span></a>
+          <a class="nav-item status-pending" href="#d10-crunchbase"><span class="nav-num">10</span><span>Funding</span><span class="nav-status"></span></a>
+          <div class="nav-divider"></div>
+          <a class="nav-item status-pending" href="#cross-signals"><span class="nav-num">★</span><span>Señales cruzadas</span><span class="nav-status"></span></a>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div>{{REPORT_DATE}}</div>
+          <div class="legend">
+            <span class="lg-rich">rich</span>
+            <span class="lg-limited">parcial</span>
+            <span class="lg-empty">vacío</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ─── MAIN ─── -->
+      <main class="main">
+        <div class="main-content">
+          <div class="main-inner">
+
+            <!-- HERO -->
+            <header class="report-hero">
+              <div class="hero-report-id">G14 · CR · {{REPORT_DATE}}</div>
+              <div class="hero-eyebrow">Company Research</div>
+              <h1>{{COMPANY_NAME}}</h1>
+              <p class="lead">{{COMPANY_TAGLINE}}</p>
+              <dl class="report-hero-meta">
+                <div><dt>Web</dt><dd>{{COMPANY_WEBSITE}}</dd></div>
+                <div><dt>Sector</dt><dd>{{COMPANY_SECTOR}}</dd></div>
+                <div><dt>HQ</dt><dd>{{COMPANY_HQ}}</dd></div>
+                <div><dt>Tamaño</dt><dd>{{COMPANY_SIZE}}</dd></div>
+              </dl>
+            </header>
+
+            <!-- BANNER OPCIONAL — Si los tests devuelven warnings, el orquestador inserta este bloque. Si los tests están limpios, BÓRRALO entero. -->
+            <div class="banner">
+              <div><strong>Verificación parcial:</strong> {{BANNER_MESSAGE}}</div>
+            </div>
+
+            <!-- EXECUTIVE SNAPSHOT — golpe de vista visual. Cifras derivadas de slots existentes. -->
+            <section class="exec-snapshot" aria-label="Resumen visual">
+              <div class="snap-card">
+                <div class="snap-card-label">Presencia digital</div>
+                <div class="snap-card-headline">{{COMPANY_NAME}}</div>
+                <div class="snap-card-sub">{{COMPANY_WEBSITE}} · {{COMPANY_SECTOR}}</div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-card-label">Reputación</div>
+                <div class="snap-card-headline">{{D04_SENTIMENT}}</div>
+                <div class="snap-mini-bars">
+                  <div class="snap-mini-row"><span>Trustpilot</span><div class="snap-mini-bar"><div class="snap-mini-bar-fill" style="width: {{D05_RATING}}%"></div></div></div>
+                  <div class="snap-mini-row"><span>Glassdoor</span><div class="snap-mini-bar"><div class="snap-mini-bar-fill" style="width: {{D07_GLASSDOOR_RATING}}%"></div></div></div>
+                  <div class="snap-mini-row"><span>Indeed</span><div class="snap-mini-bar"><div class="snap-mini-bar-fill" style="width: {{D07_INDEED_RATING}}%"></div></div></div>
+                </div>
+              </div>
+              <div class="snap-card">
+                <div class="snap-card-label">Stage / momentum</div>
+                <div class="snap-card-headline">{{KEY_STATUS}}</div>
+                <div class="snap-card-sub">Fundada {{KEY_FOUNDED}} · {{KEY_LAST_ROUND}} · {{KEY_FUNDING}}</div>
+              </div>
+            </section>
+
+            <!-- ─── 00 — RESUMEN EJECUTIVO ─── -->
+            <section id="executive-summary" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">00</span>
+                <h2 class="dimension-title">Resumen ejecutivo</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Síntesis 10 dimensiones</span>
+              </div>
+              <div class="dim-body">
+                <p>{{EXECUTIVE_SUMMARY_PARAGRAPH_1}}</p>
+                <p>{{EXECUTIVE_SUMMARY_PARAGRAPH_2}}</p>
+              </div>
+
+              <h3 class="dim-h3">Hechos clave</h3>
+              <div class="fact-grid">
+                <div class="fact-card"><span class="fact-label">Fundación</span><span class="fact-value">{{KEY_FOUNDED}}</span></div>
+                <div class="fact-card"><span class="fact-label">Sede</span><span class="fact-value">{{KEY_HQ}}</span></div>
+                <div class="fact-card"><span class="fact-label">Empleados</span><span class="fact-value">{{KEY_EMPLOYEES}}</span></div>
+                <div class="fact-card"><span class="fact-label">Funding total</span><span class="fact-value">{{KEY_FUNDING}}</span></div>
+                <div class="fact-card"><span class="fact-label">Última ronda</span><span class="fact-value">{{KEY_LAST_ROUND}}</span></div>
+                <div class="fact-card"><span class="fact-label">Estado</span><span class="fact-value">{{KEY_STATUS}}</span></div>
+              </div>
+            </section>
+
+            <!-- ─── 01 — WEB PROPIA ─── -->
+            <section id="d01-website" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">01</span>
+                <h2 class="dimension-title">Web propia</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Fuente: dominio corporativo</span>
+              </div>
+              <p class="dimension-lead">{{D01_SUMMARY}}</p>
+
+              <h3 class="dim-h3">Propuesta de valor</h3>
+              <div class="testimonial">
+                <p class="testimonial-quote">{{D01_VALUE_PROP}}</p>
+                <p class="testimonial-meta">{{D01_VALUE_PROP_SOURCE}}</p>
+              </div>
+
+              <h3 class="dim-h3">Productos / servicios</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li><strong>{{D01_PRODUCT_NAME}}</strong> — {{D01_PRODUCT_DESC}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Equipo visible</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D01_TEAM_MEMBER}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Vitalidad de la web</h3>
+              <div class="dim-body"><p>{{D01_VITALITY}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D01_SOURCE_URL}}">{{D01_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 02 — IMAGEN PÚBLICA (GOOGLE) ─── -->
+            <section id="d02-google-search" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">02</span>
+                <h2 class="dimension-title">Imagen pública</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">10 queries · Google</span>
+              </div>
+              <p class="dimension-lead">{{D02_SUMMARY}}</p>
+
+              <h3 class="dim-h3">Hechos confirmados</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D02_FACT}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Cobertura en medios</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D02_MEDIA_MENTION}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Controversias detectadas</h3>
+              <div class="dim-body"><p>{{D02_CONTROVERSIES}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D02_SOURCE_URL}}">{{D02_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 03 — LINKEDIN ─── -->
+            <section id="d03-linkedin" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">03</span>
+                <h2 class="dimension-title">LinkedIn</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Perfil corporativo</span>
+              </div>
+              <p class="dimension-lead">{{D03_SUMMARY}}</p>
+
+              <h3 class="dim-h3">Datos estructurales declarados</h3>
+              <div class="fact-grid">
+                <div class="fact-card"><span class="fact-label">Nombre oficial</span><span class="fact-value">{{D03_NAME}}</span></div>
+                <div class="fact-card"><span class="fact-label">Sector LinkedIn</span><span class="fact-value">{{D03_SECTOR}}</span></div>
+                <div class="fact-card"><span class="fact-label">Tamaño</span><span class="fact-value">{{D03_SIZE}}</span></div>
+                <div class="fact-card"><span class="fact-label">Sede</span><span class="fact-value">{{D03_HQ}}</span></div>
+                <div class="fact-card"><span class="fact-label">Seguidores</span><span class="fact-value">{{D03_FOLLOWERS}}</span></div>
+              </div>
+
+              <h3 class="dim-h3">Personas clave visibles</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D03_PERSON}}</li>
+                </ul>
+              </div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D03_SOURCE_URL}}">{{D03_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 04 — REDDIT ─── -->
+            <section id="d04-reddit" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">04</span>
+                <h2 class="dimension-title">Reddit</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">10 queries · {{D04_THREADS_COUNT}} hilos</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">Sentiment: {{D04_SENTIMENT}}</span>
+              </div>
+              <p class="dimension-lead">{{D04_SUMMARY}}</p>
+
+              <div class="metrics-row">
+                <div class="metric">
+                  <div class="metric-label">Sentiment</div>
+                  <div class="metric-value">{{D04_SENTIMENT}}</div>
+                  <div class="metric-sub">{{D04_THREADS_COUNT}} hilos analizados</div>
+                </div>
+              </div>
+
+              <h3 class="dim-h3">Patrones recurrentes — quejas</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D04_COMPLAINT}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Patrones recurrentes — elogios</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D04_PRAISE}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Hilos destacados</h3>
+              <div class="testimonial-grid">
+                <!-- repeat -->
+                <figure class="testimonial">
+                  <p class="testimonial-quote">{{D04_QUOTE}}</p>
+                  <figcaption class="testimonial-meta">r/{{D04_SUBREDDIT}} · {{D04_DATE}}</figcaption>
+                </figure>
+              </div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D04_SOURCE_URL}}">{{D04_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 05 — TRUSTPILOT ─── -->
+            <section id="d05-trustpilot" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">05</span>
+                <h2 class="dimension-title">Trustpilot</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Rating: {{D05_RATING}}/5</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">{{D05_REVIEW_COUNT}} reviews</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">{{D05_TRUSTSCORE}}</span>
+              </div>
+              <p class="dimension-lead">{{D05_SUMMARY}}</p>
+
+              <div class="metrics-row">
+                <div class="metric">
+                  <div class="metric-label">Rating</div>
+                  <div class="metric-value">{{D05_RATING}}<small>/ 5</small></div>
+                  <div class="metric-sub">{{D05_REVIEW_COUNT}} reviews</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D05_RATING}}%"></div></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">TrustScore</div>
+                  <div class="metric-value">{{D05_TRUSTSCORE}}</div>
+                  <div class="metric-sub">badge oficial</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Tasa de respuesta</div>
+                  <div class="metric-value">{{D05_RESPONSE_RATE}}</div>
+                  <div class="metric-sub">a reviews</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D05_RESPONSE_RATE}}"></div></div>
+                </div>
+              </div>
+
+              <h3 class="dim-h3">Distribución de estrellas</h3>
+              <div class="star-distribution">
+                <div class="star-row s5"><span class="star-label">5★</span><div class="star-bar-track"><div class="star-bar-fill" style="width: {{D05_PCT_5}}"></div></div><span class="star-pct">{{D05_PCT_5}}</span></div>
+                <div class="star-row s4"><span class="star-label">4★</span><div class="star-bar-track"><div class="star-bar-fill" style="width: {{D05_PCT_4}}"></div></div><span class="star-pct">{{D05_PCT_4}}</span></div>
+                <div class="star-row s3"><span class="star-label">3★</span><div class="star-bar-track"><div class="star-bar-fill" style="width: {{D05_PCT_3}}"></div></div><span class="star-pct">{{D05_PCT_3}}</span></div>
+                <div class="star-row s2"><span class="star-label">2★</span><div class="star-bar-track"><div class="star-bar-fill" style="width: {{D05_PCT_2}}"></div></div><span class="star-pct">{{D05_PCT_2}}</span></div>
+                <div class="star-row s1"><span class="star-label">1★</span><div class="star-bar-track"><div class="star-bar-fill" style="width: {{D05_PCT_1}}"></div></div><span class="star-pct">{{D05_PCT_1}}</span></div>
+              </div>
+
+              <h3 class="dim-h3">Quejas representativas</h3>
+              <div class="testimonial-grid">
+                <!-- repeat -->
+                <figure class="testimonial">
+                  <p class="testimonial-quote">{{D05_NEGATIVE_QUOTE}}</p>
+                  <figcaption class="testimonial-meta">{{D05_NEGATIVE_STARS}}★ · {{D05_NEGATIVE_DATE}}</figcaption>
+                </figure>
+              </div>
+
+              <h3 class="dim-h3">Elogios representativos</h3>
+              <div class="testimonial-grid">
+                <!-- repeat -->
+                <figure class="testimonial">
+                  <p class="testimonial-quote">{{D05_POSITIVE_QUOTE}}</p>
+                  <figcaption class="testimonial-meta">{{D05_POSITIVE_STARS}}★ · {{D05_POSITIVE_DATE}}</figcaption>
+                </figure>
+              </div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D05_SOURCE_URL}}">{{D05_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 06 — GOOGLE MAPS ─── -->
+            <section id="d06-google-maps" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">06</span>
+                <h2 class="dimension-title">Google Maps</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">HQ rating: {{D06_HQ_RATING}}/5</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">{{D06_HQ_REVIEWS}} reseñas</span>
+              </div>
+              <p class="dimension-lead">{{D06_SUMMARY}}</p>
+
+              <h3 class="dim-h3">Sede principal</h3>
+              <div class="fact-grid">
+                <div class="fact-card"><span class="fact-label">Dirección</span><span class="fact-value">{{D06_HQ_ADDRESS}}</span></div>
+                <div class="fact-card"><span class="fact-label">Rating</span><span class="fact-value">{{D06_HQ_RATING}}</span></div>
+                <div class="fact-card"><span class="fact-label">Reseñas</span><span class="fact-value">{{D06_HQ_REVIEWS}}</span></div>
+              </div>
+
+              <h3 class="dim-h3">Otras sedes destacables</h3>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead><tr><th>Sede</th><th>Ciudad</th><th>Rating</th><th>Reseñas</th></tr></thead>
+                  <tbody>
+                    <!-- repeat -->
+                    <tr><td>{{D06_SITE_NAME}}</td><td>{{D06_SITE_CITY}}</td><td>{{D06_SITE_RATING}}</td><td>{{D06_SITE_REVIEWS}}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="dim-h3">Reseñas representativas</h3>
+              <div class="testimonial-grid">
+                <!-- repeat -->
+                <figure class="testimonial">
+                  <p class="testimonial-quote">{{D06_QUOTE}}</p>
+                  <figcaption class="testimonial-meta">{{D06_QUOTE_STARS}}★ · {{D06_QUOTE_DATE}}</figcaption>
+                </figure>
+              </div>
+
+              <h3 class="dim-h3">Patrones</h3>
+              <div class="dim-body"><p>{{D06_PATTERNS}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D06_SOURCE_URL}}">{{D06_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 07 — CULTURA INTERNA ─── -->
+            <section id="d07-glassdoor" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">07</span>
+                <h2 class="dimension-title">Cultura interna</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Glassdoor: {{D07_GLASSDOOR_RATING}}/5</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">Indeed: {{D07_INDEED_RATING}}/5</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">Recomiendan: {{D07_RECOMMEND}}</span>
+              </div>
+              <p class="dimension-lead">{{D07_SUMMARY}}</p>
+
+              <div class="metrics-row">
+                <div class="metric">
+                  <div class="metric-label">Glassdoor</div>
+                  <div class="metric-value">{{D07_GLASSDOOR_RATING}}<small>/ 5</small></div>
+                  <div class="metric-sub">{{D07_GLASSDOOR_REVIEWS}} reviews</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D07_GLASSDOOR_RATING}}%"></div></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Indeed</div>
+                  <div class="metric-value">{{D07_INDEED_RATING}}<small>/ 5</small></div>
+                  <div class="metric-sub">{{D07_INDEED_REVIEWS}} reviews</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D07_INDEED_RATING}}%"></div></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Recomiendan</div>
+                  <div class="metric-value">{{D07_RECOMMEND}}</div>
+                  <div class="metric-sub">a un amigo</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D07_RECOMMEND}}"></div></div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Aprueban CEO</div>
+                  <div class="metric-value">{{D07_CEO_APPROVAL}}</div>
+                  <div class="metric-sub">empleados</div>
+                  <div class="metric-progress"><div class="metric-progress-fill" style="width: {{D07_CEO_APPROVAL}}"></div></div>
+                </div>
+              </div>
+
+              <h3 class="dim-h3">Pros recurrentes</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D07_PRO}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Contras recurrentes</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D07_CON}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Salarios reportados</h3>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead><tr><th>Rol</th><th>Rango</th><th>Moneda</th><th>Período</th></tr></thead>
+                  <tbody>
+                    <!-- repeat -->
+                    <tr><td>{{D07_ROLE}}</td><td>{{D07_RANGE}}</td><td>{{D07_CURRENCY}}</td><td>{{D07_PERIOD}}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="dim-h3">Red flags</h3>
+              <div class="dim-body"><p>{{D07_RED_FLAGS}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D07_SOURCE_URL}}">{{D07_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 08 — YOUTUBE ─── -->
+            <section id="d08-youtube" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">08</span>
+                <h2 class="dimension-title">YouTube</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">{{D08_SUBSCRIBERS}} suscriptores</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">{{D08_FREQUENCY}}</span>
+              </div>
+              <p class="dimension-lead">{{D08_SUMMARY}}</p>
+
+              <div class="metrics-row">
+                <div class="metric">
+                  <div class="metric-label">Canal oficial</div>
+                  <div class="metric-value">{{D08_SUBSCRIBERS}}</div>
+                  <div class="metric-sub">suscriptores</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Último upload</div>
+                  <div class="metric-value">{{D08_LAST_UPLOAD}}</div>
+                  <div class="metric-sub">{{D08_FREQUENCY}}</div>
+                </div>
+              </div>
+
+              <h3 class="dim-h3">Contenido propio destacado</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D08_OWN_VIDEO}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Entrevistas externas a leadership</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D08_INTERVIEW}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Contenido crítico de terceros</h3>
+              <div class="dim-body"><p>{{D08_CRITICAL_CONTENT}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D08_SOURCE_URL}}">{{D08_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 09 — PRENSA RECIENTE ─── -->
+            <section id="d09-news" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">09</span>
+                <h2 class="dimension-title">Prensa reciente</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Cobertura últimos 12 meses</span>
+              </div>
+              <p class="dimension-lead">{{D09_SUMMARY}}</p>
+
+              <h3 class="dim-h3">Noticias últimos 30 días</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D09_RECENT_NEWS}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Noticias clave del último año</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D09_KEY_NEWS}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Anuncios oficiales</h3>
+              <div class="dim-body">
+                <ul>
+                  <!-- repeat -->
+                  <li>{{D09_ANNOUNCEMENT}}</li>
+                </ul>
+              </div>
+
+              <h3 class="dim-h3">Eventos financieros</h3>
+              <div class="dim-body"><p>{{D09_FINANCIAL_EVENTS}}</p></div>
+
+              <h3 class="dim-h3">Cobertura crítica</h3>
+              <div class="dim-body"><p>{{D09_CRITICAL_COVERAGE}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D09_SOURCE_URL}}">{{D09_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── 10 — FUNDING ─── -->
+            <section id="d10-crunchbase" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">10</span>
+                <h2 class="dimension-title">Funding</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Total: {{D10_TOTAL_FUNDING}}</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">Última: {{D10_LAST_ROUND_STAGE}}</span>
+                <span class="mm-sep">·</span>
+                <span class="mm-chip">Valoración: {{D10_VALUATION}}</span>
+              </div>
+              <p class="dimension-lead">{{D10_SUMMARY}}</p>
+
+              <div class="metrics-row">
+                <div class="metric">
+                  <div class="metric-label">Total funding</div>
+                  <div class="metric-value">{{D10_TOTAL_FUNDING}}</div>
+                  <div class="metric-sub">acumulado público</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Última ronda</div>
+                  <div class="metric-value">{{D10_LAST_ROUND_AMOUNT}}</div>
+                  <div class="metric-sub">{{D10_LAST_ROUND_STAGE}} · {{D10_LAST_ROUND_DATE}}</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Valoración</div>
+                  <div class="metric-value">{{D10_VALUATION}}</div>
+                  <div class="metric-sub">{{D10_VALUATION_DATE}}</div>
+                </div>
+              </div>
+
+              <h3 class="dim-h3">Historial de rondas</h3>
+              <div class="table-wrapper">
+                <table class="data-table">
+                  <thead><tr><th>Stage</th><th>Cifra</th><th>Fecha</th><th>Lead investor</th></tr></thead>
+                  <tbody>
+                    <!-- repeat -->
+                    <tr><td>{{D10_STAGE}}</td><td>{{D10_AMOUNT}}</td><td>{{D10_DATE}}</td><td>{{D10_LEAD}}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="dim-h3">Inversores destacados</h3>
+              <div class="dim-body"><p>{{D10_INVESTORS}}</p></div>
+
+              <h3 class="dim-h3">M&amp;A</h3>
+              <div class="dim-body"><p>{{D10_MA}}</p></div>
+
+              <div class="sources">
+                <div class="sources-label">Fuentes</div>
+                <ul class="sources-list">
+                  <!-- repeat -->
+                  <li><a href="{{D10_SOURCE_URL}}">{{D10_SOURCE_URL}}</a></li>
+                </ul>
+              </div>
+            </section>
+
+            <!-- ─── ★ — SEÑALES CRUZADAS ─── -->
+            <section id="cross-signals" class="dimension">
+              <header class="dimension-header">
+                <span class="dimension-num">★</span>
+                <h2 class="dimension-title">Señales cruzadas</h2>
+              </header>
+              <div class="micro-meta">
+                <span class="mm-chip">Síntesis cross-dimensional</span>
+              </div>
+              <p class="dimension-lead">{{CROSS_SIGNALS_INTRO}}</p>
+
+              <div class="signals-grid">
+                <div class="signal-box signal-convergence">
+                  <h4>Convergencias</h4>
+                  <ul>
+                    <!-- repeat -->
+                    <li>{{CROSS_CONVERGENCE}}</li>
+                  </ul>
+                </div>
+                <div class="signal-box signal-contradiction">
+                  <h4>Contradicciones</h4>
+                  <ul>
+                    <!-- repeat -->
+                    <li>{{CROSS_CONTRADICTION}}</li>
+                  </ul>
+                </div>
+                <div class="signal-box signal-redflag">
+                  <h4>Red flags</h4>
+                  <p>{{CROSS_RED_FLAGS}}</p>
+                </div>
+              </div>
+
+              <div class="signal-final">
+                <h4>Lectura final</h4>
+                <p>{{CROSS_FINAL_READ}}</p>
+              </div>
+            </section>
+
+            <!-- ─── FOOTER ─── -->
+            <footer class="report-footer">
+              <div class="footer-col footer-col-brand">
+                <a href="https://galileo14.com" class="wordmark wordmark-xl">Galileo<b>14</b></a>
+                <div class="footer-tagline">AI Consulting & Automation</div>
+              </div>
+              <div class="footer-col">
+                <h5>Informe</h5>
+                <p>Company Research · {{REPORT_DATE}}</p>
+                <p>Madrid · galileo14.com</p>
+              </div>
+              <div class="footer-col">
+                <h5>Uso</h5>
+                <p>Documento interno. Fuentes públicas exclusivamente.</p>
+                <p>No distribuir sin contexto.</p>
+              </div>
+            </footer>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </body>
+</html>
