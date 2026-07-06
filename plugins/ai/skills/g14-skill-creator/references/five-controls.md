@@ -251,23 +251,23 @@ ship a wrong-but-plausible deliverable — because nothing is checking the
 content for truth or fit.
 
 **The fix:** a quality gate that runs **every invocation** of the skill,
-graded by a *fresh* subagent (LLM-as-judge) against a written rubric. Rubrics
-live in `tests/`, one markdown file per concern.
+graded by a *fresh* subagent (LLM-as-judge) against written evaluation
+criteria. Criteria files live in `tests/`, one markdown file per concern.
 
 ```
 skill-name/
 └── tests/
-    ├── accuracy-test.md    rubric: does every claim trace to its source?
-    ├── relevance-test.md   rubric: is every item on-topic?
-    ├── freshness-test.md   rubric: is every item within the recency window?
-    └── safety-test.md      rubric: no PII, nothing unsafe
+    ├── accuracy-test.md    criteria: does every claim trace to its source?
+    ├── relevance-test.md   criteria: is every item on-topic?
+    ├── freshness-test.md   criteria: is every item within the recency window?
+    └── safety-test.md      criteria: no PII, nothing unsafe
 ```
 
-Rubric format — the rubric tells the fresh grader exactly what to check, with
-hard PASS criteria so the grader can't fudge:
+Criteria file format — the file tells the fresh grader exactly what to check,
+with hard PASS conditions so the grader can't fudge:
 
 ```markdown
-# Rubric: Accuracy
+# Evaluation criteria: Accuracy
 
 Grade every item in the final output. PASS an item only if:
 - Every claim in the summary is supported by the linked source — open and verify.
@@ -282,7 +282,7 @@ Wiring (in the skill under test):
 
 ```markdown
 ## Quality gate (before delivering output)
-For EACH rubric file in tests/, dispatch a SEPARATE general-purpose subagent
+For EACH criteria file in tests/, dispatch a SEPARATE general-purpose subagent
 in fresh context — NOT the agent that produced the output.
 
 Dispatch config (mirror the grader's frontmatter — skill-nested agents are not
@@ -292,7 +292,7 @@ auto-registered):
   subagent_type: general-purpose
 
 Inputs to pass in the prompt:
-  1. rubric_path   — the full path to the rubric file.
+  1. criteria_path — the full path to the criteria file.
   2. output        — the deliverable to grade (text or path).
   3. skill_context — one sentence on what the skill does (optional).
 
@@ -300,22 +300,23 @@ Tell the subagent to follow the grader instruction file:
 ${CLAUDE_PLUGIN_ROOT}/skills/g14-skill-creator/agents/grader.md
 
 The grader returns strict JSON with per-item pass/fail and evidence. Collect
-all gradings. If any item fails any rubric, flag it with the grader's evidence
+all gradings. If any item fails any criteria file, flag it with the grader's evidence
 or drop it and note the gap. Never ship a failing item silently.
 ```
 
 **Why a fresh-context grader is non-negotiable.** A model reviewing its own
 work in the same context is primed to agree with itself — it just made those
 choices and remembers the trade-offs. A fresh subagent that sees *only* the
-rubric and the output has no such attachment. That independence is the test.
+criteria and the output has no such attachment. That independence is the test.
 Control 4 (parallelism) makes running N fresh graders cheap, which is why this
 works in practice.
 
-**One rubric per concern, not one rubric for everything.** A rubric that tries
-to check accuracy AND tone AND safety in one pass gives weaker signal than
-three focused rubrics graded in parallel. Each rubric is a single question.
+**One criteria file per concern, not one file for everything.** A criteria
+file that tries to check accuracy AND tone AND safety in one pass gives weaker
+signal than three focused files graded in parallel. Each criteria file is a
+single question.
 
-**What good rubric criteria look like:**
+**What good evaluation criteria look like:**
 
 - ✅ "Every claim is supported by a linked source — open and verify."
 - ✅ "No PII appears in the output (names, emails, phone numbers, addresses)."

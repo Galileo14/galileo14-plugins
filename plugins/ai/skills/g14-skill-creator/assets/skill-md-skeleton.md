@@ -42,7 +42,7 @@ into an assets/ template — Control 3.}}
   Control 2 (Process): "Run: python scripts/<name>.py ..."
   Control 3 (Output):  "Load assets/<template>. Fill every {{SLOT}}. Don't redesign."
   Control 4 (Speed):   "Dispatch one subagent per <unit>, all in parallel."
-  Control 5 (Tests):   "For each tests/<rubric>.md, dispatch a fresh grader subagent."
+  Control 5 (Tests):   "For each tests/<criteria>.md, dispatch a fresh grader subagent."
 
   See references/five-controls.md for full build instructions.
 -->

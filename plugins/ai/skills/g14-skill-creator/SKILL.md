@@ -39,7 +39,7 @@ with no wiring is dead weight.
 | 2 | Process | `scripts/`    | Claude reinventing the method each run                                |
 | 3 | Output  | `assets/`     | Claude redesigning the deliverable each run                           |
 | 4 | Speed   | `agents/`     | Slow serial runs; main context filling with noise                     |
-| 5 | Tests   | `tests/`      | Output looks right but the *content* is wrong, stale or off-topic — checked by an LLM-as-judge subagent against a fixed rubric, in fresh context |
+| 5 | Tests   | `tests/`      | Output looks right but the *content* is wrong, stale or off-topic — checked by an LLM-as-judge subagent against fixed evaluation criteria, in fresh context |
 
 Controls 1–3 and 5 raise *determinism*. Control 4 raises *efficiency* — it
 doesn't make output more repeatable, it makes runs fast and keeps the main
@@ -72,8 +72,8 @@ the conversation already; only ask the gaps.
    open web, the user's own files?
 5. **Is the process fixed or open-ended?** Same steps every time, or genuinely
    novel each run?
-6. **What would "wrong" look like?** This is the seed for the test rubrics in
-   Control 5.
+6. **What would "wrong" look like?** This is the seed for the evaluation
+   criteria in Control 5.
 
 ### Step 2 — Write the plain skill first (zero controls)
 
@@ -140,9 +140,9 @@ For each control in your plan, follow
   reference — nested `agents/` files aren't auto-registered; either promote
   real agents to `.claude/agents/`, or have `SKILL.md` spawn a general-purpose
   subagent that reads the instruction file.
-- **Control 5 — Tests (`tests/`).** Write one markdown rubric per concern
-  (accuracy, freshness, tone, safety). Wire `SKILL.md` to dispatch a fresh
-  general-purpose subagent per rubric *as a quality gate* before delivery —
+- **Control 5 — Tests (`tests/`).** Write one markdown criteria file per
+  concern (accuracy, freshness, tone, safety). Wire `SKILL.md` to dispatch a
+  fresh general-purpose subagent per criteria file *as a quality gate* before delivery —
   never let the same agent grade its own work. Point each subagent at the
   grader contract at `${CLAUDE_PLUGIN_ROOT}/skills/g14-skill-creator/agents/grader.md`
   and mirror its recommended dispatch config (`model: sonnet`, tools limited
@@ -152,7 +152,7 @@ For each control in your plan, follow
 
 Make `SKILL.md` the orchestrator. For every folder you created, add an
 explicit instruction: read this, run that, dispatch these, fill that template,
-grade against those rubrics. Verify nothing is orphaned — if a folder exists
+grade against those criteria. Verify nothing is orphaned — if a folder exists
 but `SKILL.md` never mentions it, it will simply never be used.
 
 Quick wiring reference:
@@ -173,12 +173,12 @@ exist, and the skill is no longer re-deciding anything it shouldn't.
 
 Then drive it: pick 2-3 realistic prompts and run end-to-end. If Control 5
 (Tests) is wired, every run produces grader output you can inspect to see
-whether the rubric criteria hold. The grader's `evidence` field per item tells
+whether the evaluation criteria hold. The grader's `evidence` field per item tells
 you *why* something failed — usually where the skill needs sharpening.
 
 ## Judgement, in one line
 
 The drift you actually observe tells you which control to add next. A skill
 earns its scaffolding one observed failure at a time — never pre-emptively.
-Tests (Control 5) turn quality from a feeling into a judgement against a
-written rubric — add them when the cost of shipping wrong content is real.
+Tests (Control 5) turn quality from a feeling into a judgement against
+written evaluation criteria — add them when the cost of shipping wrong content is real.
