@@ -54,7 +54,7 @@ Ordered by severity, then by blast radius.
 ### [CRITICAL] {{short title}}
 
 - **Location:** `{{path/to/file.ext:line}}` _(or `project-wide`)_
-- **Category:** {{injection | auth | authz | secrets | crypto | session | input-validation | dependency | cors/csrf | file-upload | logging | info-disclosure | client-side | infra}}
+- **Category:** {{injection | auth | authz | api | business-logic | secrets | crypto | session | input-validation | dependency | cors/csrf | file-upload | logging | info-disclosure | client-side | infra}}
 - **Description:** {{what's wrong, observed in the code}}
 - **Impact:** {{attack scenario / data at risk / blast radius}}
 - **Resolution:** {{concrete fix steps}}

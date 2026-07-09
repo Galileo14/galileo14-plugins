@@ -75,7 +75,7 @@ Brief chat message only — the full report is in the file:
 ```
 Scalability audit complete → <report-path>
 
-Counts: X CRIT / Y HIGH / Z MED / W LOW / V INFO
+Counts: X CRITICAL / Y HIGH / Z MEDIUM / W LOW / V INFO
 
 Top 3 findings:
 1. [SEV] Title — category
@@ -88,6 +88,7 @@ Don't dump the report into chat.
 ## Hard rules
 
 - **Don't duplicate the agent.** All lens content (what to look for, severity rubric, output contract) lives in `${CLAUDE_PLUGIN_ROOT}/agents/scalability-auditor.md`. If you find yourself tempted to re-state it here, stop — update the agent instead.
+- **One agent, one lens.** No scope creep into security, architecture, clean-code, or database — those have their own agents.
 - **Read-only.** Never modify target code. The agent's tools are constrained to read-only; keep this skill aligned.
 - **Template is the contract.** Don't renegotiate mid-run.
 - **Severity labels stay English** — they are greppable across reports.

@@ -55,7 +55,7 @@ the format your agent file specifies.
 
 Set `description` to `"Security audit — <project name>"`. Do NOT override the agent's model/effort/tools — they are fixed in the agent frontmatter for a reason.
 
-### 3 · Consolidate the report
+### 3 · Consolidate the final report
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-security-audit/assets/report-template.md` and fill every placeholder using the agent's output:
 
@@ -89,6 +89,7 @@ Don't dump the full report into chat.
 ## Hard rules
 
 - **Don't duplicate the agent.** All lens content (what to look for, severity rubric, output contract) lives in `${CLAUDE_PLUGIN_ROOT}/agents/security-auditor.md`. If you find yourself tempted to re-state it here, stop — update the agent instead.
+- **One agent, one lens.** No scope creep into scalability, architecture, clean-code, or database — those have their own agents.
 - **Read-only.** Never modify target code. The agent's tools are constrained to read-only; keep this skill aligned.
 - **Template is the contract.** Fill every placeholder; don't drop sections.
 - **Severity labels stay English** — they are greppable across reports.

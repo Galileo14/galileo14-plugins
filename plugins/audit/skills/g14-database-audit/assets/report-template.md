@@ -1,18 +1,18 @@
 <!--
-  g14-scalability-audit report template.
+  g14-database-audit report template.
   Placeholders are in {{double-curly}} format. Fill every placeholder.
   Don't remove sections — if the analyst came back clean, write "No findings." inside.
   Keep severity labels in English (CRITICAL / HIGH / MEDIUM / LOW / INFO) so they're
   greppable and consistent across reports, even when the prose is in another language.
 -->
 
-# Scalability Audit Report
+# Database Audit Report
 
 - **Project:** {{project_name}}
 - **Path:** `{{absolute_path}}`
 - **Date:** {{YYYY-MM-DD HH:MM}}
-- **Auditor:** Claude Code — `audit:g14-scalability-audit` skill
-- **Lens:** Scalability
+- **Auditor:** Claude Code — `audit:g14-database-audit` skill
+- **Lens:** Database
 - **Scope:** {{files_analyzed}} files · {{loc_approx}} LOC (approx.)
 
 ---
@@ -21,7 +21,7 @@
 
 **Overall health:** {{healthy | at-risk | critical}}
 
-{{2–4 sentence narrative: what kind of project is this, what's the big-picture scalability posture, what is the single most important thing the reader should walk away knowing.}}
+{{2–4 sentence narrative: what kind of data layer this project has, what's the big-picture posture, what is the single most important thing the reader should walk away knowing.}}
 
 ### Top findings
 
@@ -54,9 +54,9 @@ Ordered by severity, then by blast radius.
 ### [CRITICAL] {{short title}}
 
 - **Location:** `{{path/to/file.ext:line}}` _(or `project-wide`)_
-- **Category:** {{database | caching | concurrency | memory | i/o | infrastructure | multi-tenancy | algorithm | background-jobs | observability}}
+- **Category:** {{schema | referential-integrity | migrations | indexing | query-patterns | transactions | data-access-security | orm | backups-retention}}
 - **Description:** {{what's wrong, observed in the code}}
-- **Impact:** {{what breaks / at what scale / what's the ceiling}}
+- **Impact:** {{what breaks — data loss, corruption, breach, latency — and at what scale}}
 - **Resolution:** {{concrete fix steps}}
 - **Effort:** {{S | M | L}}
 - **Confidence:** {{high | medium | low}}
@@ -71,7 +71,7 @@ Bucketed by when the team should tackle each item. Weighs severity, effort, and 
 
 ### Do first (this sprint)
 
-_CRITICAL + HIGH items with S/M effort; anything that causes imminent production failure._
+_CRITICAL + HIGH items with S/M effort; anything risking data loss, corruption, or a breach._
 
 - [ ] [{{SEV}}] {{title}} — _effort {{S|M|L}}_
 - [ ] ...
@@ -94,19 +94,19 @@ _LOW / INFO / minor inefficiencies / opportunistic fixes._
 
 ## Methodology & caveats
 
-**Analyst:** `${CLAUDE_PLUGIN_ROOT}/agents/scalability-auditor.md` (source of truth for the scalability lens).
+**Analyst:** `${CLAUDE_PLUGIN_ROOT}/agents/database-auditor.md` (source of truth for the database lens).
 
-**Execution:** one `scalability-auditor` agent invocation doing read-only codebase exploration (Read / Glob / Grep / Bash). No files were modified.
+**Execution:** one `database-auditor` agent invocation doing read-only codebase exploration (Read / Glob / Grep / Bash). No files were modified, no migrations were run, no live database was accessed.
 
 **Scope skipped:** `node_modules/`, `vendor/`, `dist/`, `build/`, `.next/`, compiled assets, lockfiles, generated code.
 
 **Caveats:**
-{{Copy the "Notes & caveats" section from the analyst here — files they couldn't access, sampling decisions, assumptions about load, approximate file count analyzed.}}
+{{Copy the "Notes & caveats" section from the analyst here — files they couldn't access, sampling decisions, assumptions about data volume, approximate file count analyzed.}}
 
 **Severity legend:**
 
-- `CRITICAL` — falls over at current or near-term load. Fix immediately.
-- `HIGH` — clear bottleneck likely to bite within months. Fix this sprint.
-- `MEDIUM` — real ceiling, not imminent. Schedule this quarter.
+- `CRITICAL` — data loss, corruption, or breach risk that can happen today. Fix immediately.
+- `HIGH` — clear correctness/integrity gap likely to bite under normal operation. Fix this sprint.
+- `MEDIUM` — real design smell or inefficiency, not imminent danger. Schedule this quarter.
 - `LOW` — minor inefficiency. Fix opportunistically.
 - `INFO` — observation, not a defect.

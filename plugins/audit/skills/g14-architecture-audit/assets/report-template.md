@@ -32,6 +32,8 @@ Ordered by severity, then blast radius.
 | 1   | {{SEV}}  | {{cat}}  | {{one-line title}} |
 | 2   | {{SEV}}  | {{cat}}  | {{one-line title}} |
 | 3   | {{SEV}}  | {{cat}}  | {{one-line title}} |
+| 4   | {{SEV}}  | {{cat}}  | {{one-line title}} |
+| 5   | {{SEV}}  | {{cat}}  | {{one-line title}} |
 
 ### Severity counts
 
@@ -41,15 +43,7 @@ Ordered by severity, then blast radius.
 
 ---
 
-## Architecture Analysis
-
-**Rating:** {{healthy | at-risk | critical}} — {{one-sentence justification}}
-
-### Summary
-
-{{2–4 sentence overview from the architecture analyst}}
-
-### Findings
+## Findings
 
 <!--
   Paste the architecture analyst's findings verbatim, ordered CRITICAL → HIGH → MEDIUM → LOW → INFO.
@@ -57,7 +51,7 @@ Ordered by severity, then blast radius.
   If zero findings total, write: "No findings."
 -->
 
-#### [CRITICAL] {{short title}}
+### [CRITICAL] {{short title}}
 
 - **Location:** `{{path/to/file.ext:line}}` _(or `project-wide`)_
 - **Category:** {{coupling | cohesion | layering | duplication | dead-code | god-object | abstraction | dependency-direction | testability | naming | documentation | consistency | tech-debt | structure}}

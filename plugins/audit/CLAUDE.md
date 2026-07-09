@@ -1,6 +1,6 @@
 # audit plugin — architecture
 
-Codebase audits for Galileo14 across four lenses — security, scalability, architecture, clean-code. Four user-facing **skills** that produce a severity-ranked markdown report each, all delegating to **four single-lens auditor agents** at the plugin root.
+Codebase audits for Galileo14 across five lenses — security, scalability, architecture, clean-code, database. Five user-facing **skills** that produce a severity-ranked markdown report each, all delegating to **five single-lens auditor agents** at the plugin root. A sixth skill, `g14-full-audit`, orchestrates any combination of the five in parallel into one combined report. A seventh, `g14-skill-audit`, audits Claude Code skill folders (a different kind of target entirely).
 
 ## The shape
 
@@ -10,13 +10,17 @@ plugins/audit/
 │   ├── security-auditor.md           ← owns the security lens (OWASP-shaped checklist + rubric)
 │   ├── scalability-auditor.md        ← owns the scalability lens (DB / cache / I/O / etc.)
 │   ├── architecture-auditor.md       ← owns the architecture lens (coupling / cohesion / layering)
-│   └── clean-code-auditor.md         ← owns the per-file craftsmanship lens
+│   ├── clean-code-auditor.md         ← owns the per-file craftsmanship lens
+│   └── database-auditor.md           ← owns the database lens (schema / migrations / indexes / integrity)
 └── skills/
     ├── g14-security-audit/                ← runner — resolves target, invokes agent, consolidates
-    ├── g14-scalability-audit/             ← runner — same shape
-    ├── g14-architecture-audit/            ← runner — same shape
-    ├── g14-clean-code-audit/              ← runner — same shape
     │   └── assets/report-template.md  ← per-skill report skeleton (skill-specific output)
+    ├── g14-scalability-audit/             ← runner — same shape (own assets/report-template.md)
+    ├── g14-architecture-audit/            ← runner — same shape (own assets/report-template.md)
+    ├── g14-clean-code-audit/              ← runner — same shape (own assets/report-template.md)
+    ├── g14-database-audit/                ← runner — same shape (own assets/report-template.md)
+    ├── g14-full-audit/                    ← FAN-OUT orchestrator (see note below), NOT a thin runner
+    │   └── assets/                   ← report-template.md AND report-template.html (combined report, two renderings)
     └── g14-skill-audit/                   ← SELF-CONTAINED orchestrator (see note below), NOT a thin runner
         ├── scripts/scan_skill.py     ← deterministic structural inventory of a target skill
         ├── references/               ← pinned audit rubric + best-practices + vendored framework docs
@@ -24,6 +28,32 @@ plugins/audit/
         ├── agents/                   ← nested instruction files (dimension-auditor, grader)
         └── tests/                    ← four fresh-grader rubrics (quality gate)
 ```
+
+## Exception — g14-full-audit fans out to multiple agents instead of one
+
+`g14-full-audit` is also not a thin runner, but for a different reason than
+`g14-skill-audit` below:
+
+- It doesn't own a lens of its own. It asks the user which of the five
+  existing lenses to run (or infers them from the request), then sends **one
+  `Task` call per chosen lens agent in the same message** so they run
+  concurrently — the standard Control 4 (Speed) pattern, applied across
+  agents instead of within one.
+- It creates **no new agent**. All five `subagent_type` values it dispatches
+  to (`security-auditor`, `scalability-auditor`, `architecture-auditor`,
+  `clean-code-auditor`, `database-auditor`) are the same plugin-root agents
+  the standalone skills use — still the single source of truth for their
+  lenses.
+- Its only genuinely new artifact is the **consolidation**: one combined
+  report merging cross-lens top findings, combined + per-lens severity
+  counts, and one combined action plan — rendered as both `report-template.md`
+  and `report-template.html` (self-contained inline CSS, no build step) so the
+  same underlying data has a plain-text and a shareable visual form.
+
+If a sixth lens is ever added, give it its own agent + standalone skill first
+(per "When to add a new agent vs a new skill" below), then add one row to
+`g14-full-audit`'s lens table — never build lens content directly inside
+`g14-full-audit`.
 
 ## Exception — g14-skill-audit does NOT follow the thin-runner norm
 
@@ -66,6 +96,7 @@ If two skills ever needed the same lens content (they don't, but if they did), t
 | Scalability lens (ceilings, DB / cache / I/O / concurrency / infra) | `scalability-auditor` agent | g14-scalability-audit |
 | Architecture lens (coupling / cohesion / layering / abstraction / tech debt) | `architecture-auditor` agent | g14-architecture-audit |
 | Clean-code lens (per-file craftsmanship: naming / nesting / duplication / smells) | `clean-code-auditor` agent | g14-clean-code-audit |
+| Database lens (schema / migrations / indexes / referential integrity / query patterns / ORM) | `database-auditor` agent | g14-database-audit |
 | Report skeleton (executive summary, top findings table, action plan, severity legend) | `assets/report-template.md` inside each skill | the same skill |
 
 Skills keep what is genuinely **skill-specific**: the target-resolution heuristic, the report template, the final chat-summary format. Everything about *what an audit is and how to judge severity* belongs in the agent.
@@ -83,7 +114,7 @@ If you find yourself adding lens content (categories, severity rules, output fie
 
 ## Model + effort + tools per agent
 
-All four agents are fixed in frontmatter so the runner can't tune them mid-flight:
+All five agents are fixed in frontmatter so the runner can't tune them mid-flight:
 
 | Agent | model | effort | tools | Why |
 |---|---|---|---|---|
@@ -91,6 +122,7 @@ All four agents are fixed in frontmatter so the runner can't tune them mid-fligh
 | `scalability-auditor` | sonnet | high | Read, Grep, Glob, Bash | Judgment about where ceilings are and how close the project is to them |
 | `architecture-auditor` | sonnet | high | Read, Grep, Glob, Bash | Synthesis across coupling / cohesion / layering — multi-signal reasoning |
 | `clean-code-auditor` | sonnet | medium | Read, Grep, Glob, Bash | Breadth over depth; per-file craftsmanship checks with less cross-cutting judgment |
+| `database-auditor` | sonnet | high | Read, Grep, Glob, Bash | Correctness/integrity judgment across schema, migrations, transactions and access patterns |
 
 Plugin agents do not support `thinking` / `reasoning` in frontmatter; `effort` (low / medium / high / xhigh / max) is the available knob. Tools are read-only intentionally: agents must never modify the target.
 

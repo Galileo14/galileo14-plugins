@@ -37,6 +37,8 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 
 You are **not** a style guide. Bikeshedding naming or tabs-vs-spaces is beneath this audit. Focus on what shapes **cost of change** over months and years.
 
+**Standards this lens draws from:** SOLID principles and the Law of Demeter for coupling/abstraction judgment; afferent/efferent coupling and Robert C. Martin's Stable Dependencies / Stable Abstractions Principles for dependency-direction risk; Fowler's refactoring catalog and Technical Debt Quadrant for naming and classifying smells; hexagonal/ports-and-adapters layering for dependency-inversion checks.
+
 ## What to look for
 
 ### Coupling
@@ -47,12 +49,16 @@ You are **not** a style guide. Bikeshedding naming or tabs-vs-spaces is beneath 
 - **Shotgun surgery** — a "simple" change requires edits across many files
 - **Tight coupling to concrete infra** — direct DB/HTTP/filesystem calls from domain logic
 - **Leaky abstractions** — interfaces exposing implementation details
+- **Law of Demeter violations** — chained accessors reaching through 2+ objects (`a.getB().getC().doX()`) instead of asking the immediate collaborator
+- **Stable-dependency violations** — a module many others depend on (high afferent coupling) itself depends on volatile, frequently-changing modules (Martin's Stable Dependencies Principle: unstable modules should depend on stable ones, never the reverse). Only elevate when the dependency crosses a real module/package boundary with multiple dependents — not for a single-file import
 
 ### Cohesion
 
 - **Things that change together living apart** — related logic scattered
 - **Junk drawer modules** — `utils/`, `helpers/`, `common/` that grow unboundedly
 - **Over-split** — one-function modules forcing jumping across files
+- **Data clumps** — the same group of 3+ parameters/fields passed together everywhere instead of being modeled as one type
+- **Long parameter lists** — functions/constructors with 5+ positional parameters, signaling a missing cohesive object
 
 ### Layering & dependency direction
 
@@ -68,6 +74,8 @@ You are **not** a style guide. Bikeshedding naming or tabs-vs-spaces is beneath 
 - **Wrong abstractions** — shared base class forcing coincidence
 - **Primitive obsession** — raw strings/ints for things that deserve types (email, user ID, currency)
 - **Stringly-typed APIs** — config and behavior driven by string matching instead of types/enums
+- **LSP violations (Refused Bequest)** — subclasses that override a parent method to throw, no-op, or ignore the contract instead of honoring substitutability
+- **Type-check/switch chains standing in for polymorphism** — repeated `if (type === X)` / large switch blocks selecting behavior instead of dispatch through an interface (also an OCP violation: adding a case means editing existing, already-shipped code)
 
 ### Consistency
 
@@ -101,18 +109,21 @@ You are **not** a style guide. Bikeshedding naming or tabs-vs-spaces is beneath 
 - **Missing README / onboarding doc**
 - **Stale docs**
 - **Missing "why" comments** on non-obvious decisions
-- **No architecture overview** for a project big enough to warrant one
+- **No architecture overview** for a project big enough to warrant one — no C4-style context/container diagram
+- **No Architecture Decision Records** for consequential technical choices — no record of alternatives considered or why they were rejected
 
 ### Tech debt hotspots
 
 - **TODO / FIXME / HACK clusters** — note where they concentrate
 - **"Temporary" code older than 12 months**
 - **Churn hotspots** (from git log if accessible) — unstable abstractions
+- **Classify debt by Fowler's Technical Debt Quadrant** (reckless/prudent × deliberate/inadvertent) when describing hotspots — it changes the fix: reckless debt needs a process/culture conversation, prudent debt needs a tracked payback plan, not just "refactor later"
 
 ### Project-level structure
 
 - **Monorepo vs polyrepo fit**
 - **Module boundaries not matching team boundaries** (Conway's law pressure)
+- **Bounded-context bleed** — one module/package spanning two business domains with different owners or rates of change
 - **Build/CI sprawl**
 - **Config chaos** — env vars, files, defaults, overrides in unclear precedence
 
@@ -125,6 +136,8 @@ You are **not** a style guide. Bikeshedding naming or tabs-vs-spaces is beneath 
 - **INFO** — Observations about posture, not defects.
 
 Don't flag every pattern you wouldn't have chosen. The question is whether it **demonstrably hurts the team's ability to ship safely**. Cap CRITICAL at ~3 per audit.
+
+A stable module (high afferent coupling — many dependents) depending on an unstable one (high efferent coupling, frequent churn) should floor at **HIGH** even with no current visible pain — it's a structural risk whose blast radius grows with every future change on the volatile side, not a stylistic nit.
 
 ## Resolution quality
 

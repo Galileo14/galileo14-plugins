@@ -12,8 +12,8 @@
 - **Path:** `{{absolute_path}}`
 - **Date:** {{YYYY-MM-DD HH:MM}}
 - **Auditor:** Claude Code — `audit:g14-clean-code-audit` skill
-- **Lens:** Clean-Code (naming · structure · duplication · comment hygiene · dead code · magic constants · god objects · abstraction leaks · style consistency · complexity coverage)
-- **Scope:** {{files_analyzed}} files analyzed · {{loc_approx}} LOC (approx.)
+- **Lens:** Clean Code
+- **Scope:** {{files_analyzed}} files · {{loc_approx}} LOC (approx.)
 
 ---
 
@@ -54,7 +54,7 @@ Ordered by severity, then by blast radius (how many people or flows are affected
 ### [CRITICAL] {{short title}}
 
 - **Location:** `{{path/to/file.ext:line}}` _(or `project-wide`)_
-- **Category:** {{naming | function-length | nesting | duplication | comment-hygiene | dead-code | magic-constants | god-object | abstraction-leak | style-consistency | complexity-without-tests}}
+- **Category:** {{naming | function-length | nesting | duplication | comment-hygiene | dead-code | magic-constants | god-object | domain-modeling | abstraction-leak | style-consistency | complexity-without-tests}}
 - **Description:** {{what was observed, with exact file:line}}
 - **Why it bites:** {{concrete maintenance cost — what goes wrong, how often, who gets hurt}}
 - **Fix:** {{concrete refactor steps}}
@@ -73,21 +73,21 @@ Bucketed by urgency. Weighs severity, effort, and blast radius — not just raw 
 
 _CRITICAL items; HIGH items with S/M effort that block safe daily work._
 
-- [ ] [{{SEV}}] {{title}} — `{{file:line}}`, effort {{S|M|L}}
+- [ ] [{{SEV}}] {{title}} — _effort {{S|M|L}}_
 - [ ] ...
 
 ### Do next (next 30 days)
 
 _HIGH with L effort + MEDIUM items that compound the longer they sit._
 
-- [ ] [{{SEV}}] {{title}} — `{{file:line}}`, effort {{S|M|L}}
+- [ ] [{{SEV}}] {{title}} — _effort {{S|M|L}}_
 - [ ] ...
 
 ### Backlog / consider
 
 _LOW / INFO / purely opportunistic fixes._
 
-- [ ] [{{SEV}}] {{title}} — `{{file:line}}`, effort {{S|M|L}}
+- [ ] [{{SEV}}] {{title}} — _effort {{S|M|L}}_
 - [ ] ...
 
 ---
@@ -108,5 +108,3 @@ _LOW / INFO / purely opportunistic fixes._
 - `MEDIUM` — real debt, contained. Schedule for next cleanup pass.
 - `LOW` — minor or opportunistic. Fix when you're already in the file.
 - `INFO` — observation only, not a defect.
-
-**Out of scope for this audit:** correctness bugs, security vulnerabilities, performance bottlenecks, high-level module coupling and dependency direction. Use `audit:g14-security-audit`, `audit:g14-scalability-audit`, or `audit:g14-architecture-audit` for those lenses.

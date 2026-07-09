@@ -38,7 +38,7 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 - **Style consistency** — is there one way of doing things or many
 - **Complexity without test cover** — is dense logic left unanchored by tests
 
-## In scope — what counts as a clean-code finding
+## What to look for
 
 ### Naming
 
@@ -55,6 +55,9 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 - **Functions doing more than one thing** — network + transform + persist in one body
 - **Functions with >3–4 parameters** where a parameter object would clarify intent
 - **Functions returning wildly different types** depending on a flag — sign of split personality
+- **Cyclomatic complexity > 10 (McCabe)** — count decision points (`if`/`else`/`case`/`&&`/`||`/loops) + 1; above 10 the function has too many independent paths to reason about or test exhaustively; above 30 it's a mandatory split, not a judgment call
+- **Cognitive complexity > 15 (SonarSource default threshold)** — the modern complement to cyclomatic complexity: it penalizes *nesting* more than flat branching, so a deeply nested `if` inside a loop inside a `try` scores far worse than an equivalent flat `switch`. Prefer this metric when the function has heavy nesting rather than many independent branches
+- **Feature envy** — a function reaches into another object's data/methods more than its own; the logic belongs on the other side of that boundary, not here
 
 ### Nesting depth
 
@@ -67,6 +70,9 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 - **Identical or near-identical code blocks** (>5–6 lines) appearing in 2+ places
 - **Copy-pasted error handling** that should be a shared wrapper
 - **Repeated string patterns** (URLs, keys, messages) that should be constants
+- **Shotgun surgery** — the inverse smell: one conceptual change requires edits scattered across many unrelated files. As costly as copy-paste duplication, just harder to grep for
+- **Message chains** — long call chains reaching through objects (`a.getB().getC().getD()`) that couple the caller to internal structure it has no business knowing about
+- **Forced/premature DRY** — three near-identical blocks unified into one "clever" parameterized abstraction that's harder to read than the duplication it replaced; WET-but-clear beats DRY-but-cryptic here
 
 ### Comment hygiene
 
@@ -94,6 +100,13 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 - **A single file that's the gravitational center** of many imports — everyone depends on it; it depends on everyone
 - **Constructors with 6+ injected dependencies** — sign the class is doing too much
 
+### Domain modeling smells
+
+- **Primitive obsession** — a bare string/int standing in for a domain concept (currency code, status enum, email, user ID) instead of a small value type that can validate itself
+- **Data clumps** — the same group of 3+ parameters or fields (street/city/zip, startDate/endDate) passed together everywhere instead of being modeled as one type
+- **Speculative generality** — abstract base classes, config flags, or extension points built for a future requirement that never arrived
+- **Repeated type-checks/switches** — the same `switch(type)` / `instanceof` chain duplicated across files instead of polymorphism or a lookup table
+
 ### Abstraction leaks
 
 - **Interfaces or types that expose implementation details** — callers know about internal DB column names, HTTP status codes, or internal IDs
@@ -111,7 +124,7 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 - **Core algorithmic logic with no test** — dense branching, stateful logic, or recursion that's never exercised by a test suite
 - **Critical utilities (parsers, formatters, validators) with zero tests** — these are bug magnets; zero coverage is the smell, not complexity alone
 
-## Out of scope — do NOT flag these
+## Out of scope
 
 | What | Why it's out of scope |
 |---|---|
@@ -124,19 +137,25 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 
 If you notice a bug or security issue incidentally, add a single `INFO` note to the Notes section — do not create a finding for it.
 
-## Severity rubric
+## Severity guidance
 
-| Severity | When to use |
-|---|---|
-| **CRITICAL** | The smell actively prevents the team from working safely in this area — a god-class that nobody dares touch, a 400-line function that's the only entry point, naming so wrong it has caused bugs. Reserve for genuine maintenance blockers. Cap at ~3 per audit. |
-| **HIGH** | Significant maintenance drag that will keep biting — large duplication that diverges silently, a naming inconsistency that trips up everyone who onboards, a deeply nested function that needs a flowchart. Will compound. |
-| **MEDIUM** | Real debt, contained. Worth fixing in the next cleanup sprint. |
-| **LOW** | Minor, opportunistic. Fix when you're in the file anyway. |
-| **INFO** | Observation only — no defect implied. Pattern noted, stylistic, or a "consider whether..." note. |
+- **CRITICAL** — The smell actively prevents the team from working safely in this area: a god-class that nobody dares touch, a 400-line function that's the only entry point, naming so wrong it has caused bugs, or a function whose cyclomatic/cognitive complexity exceeds 30 with zero test cover. Reserve for genuine maintenance blockers. Cap at ~3 per audit.
+- **HIGH** — Significant maintenance drag that will keep biting: large duplication that diverges silently, a naming inconsistency that trips up everyone who onboards, a function scoring 15–30 on cyclomatic/cognitive complexity. Will compound.
+- **MEDIUM** — Real debt, contained. A function in the 10–15 complexity range, a contained duplication, a data clump. Worth fixing in the next cleanup sprint.
+- **LOW** — Minor, opportunistic. Fix when you're in the file anyway.
+- **INFO** — Observation only — no defect implied. Pattern noted, stylistic, or a "consider whether..." note.
+
+Anchor severity to SonarSource's four Clean Code attributes where useful: a violation that only affects **Consistent** (pure style, no ambiguity risk) caps at LOW/INFO; a violation of **Adaptable** or **Responsible** (the code actively resists safe change) justifies HIGH/CRITICAL.
 
 **Anti-pattern to avoid:** do NOT propose rewriting working code purely for stylistic preference. Every finding must explain *why it bites the team* — maintenance burden, ambiguity, known bug magnet. If you can't make that case, downgrade to INFO or drop it.
 
-## Sampling strategy for large repos
+## Resolution quality
+
+Every **Fix** must be actionable. Bad: "Simplify this function." Good: "Split `processOrder()` in `src/orders/service.ts:88` (cyclomatic complexity 22) into `validateOrder()`, `calculateTotals()`, and `persistOrder()` — each currently a distinct branch inside the same function body. Low risk: no behavior change, pure extraction."
+
+If the fix is a judgment call (e.g. whether a duplication is coincidental or genuine), say so and propose the safer default (don't unify unless the duplicated concept is truly the same one).
+
+## Scope
 
 For repos with **>500 files**, sample intelligently — do not attempt exhaustive coverage:
 
@@ -170,7 +189,7 @@ Return the report in the user's `language` for prose; severity labels stay Engli
 ### [CRITICAL] <short title>
 
 - **Location:** `path/to/file.ext:line` (or `project-wide`)
-- **Category:** <naming | function-length | nesting | duplication | comment-hygiene | dead-code | magic-constants | god-object | abstraction-leak | style-consistency | complexity-without-tests>
+- **Category:** <naming | function-length | nesting | duplication | comment-hygiene | dead-code | magic-constants | god-object | domain-modeling | abstraction-leak | style-consistency | complexity-without-tests>
 - **Description:** <what you observed, with exact file:line where applicable>
 - **Why it bites:** <concrete maintenance cost — what goes wrong, how often, who gets hurt>
 - **Fix:** <concrete refactor steps; if multi-step, number them; if low-risk, say so>
@@ -181,7 +200,7 @@ Return the report in the user's `language` for prose; severity labels stay Engli
 
 (repeat, ordered CRITICAL → HIGH → MEDIUM → LOW → INFO)
 
-## Notes
+## Notes & caveats
 
 <sampling decisions, git-log hotspot analysis if run, file count analyzed, areas you couldn't inspect, assumptions about team size or maturity>
 ```

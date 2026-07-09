@@ -34,6 +34,8 @@ Scalability = ability to handle growth along at least one axis without a rewrite
 
 Care about **where the ceilings are** and **how close the project already is to them**. "Works fine today" isn't an answer — the question is what happens at 10× or 100× today's load.
 
+**Standards this lens draws from:** the USE method (Utilization/Saturation/Errors, per-resource) and RED method (Rate/Errors/Duration, per-service) for observability gaps; the Twelve-Factor App methodology for concurrency, disposability, and backing-services checks; the AWS Well-Architected Framework's Performance Efficiency pillar for infrastructure/scaling judgment; and the Circuit Breaker / Bulkhead / Retry / Timeout resilience patterns for dependency isolation.
+
 ## What to look for
 
 Checklist, not script. Prioritize what the project actually uses; skip sections that don't apply.
@@ -48,6 +50,8 @@ Checklist, not script. Prioritize what the project actually uses; skip sections 
 - **Connection pool sizing** — hardcoded or too-small pools; no backpressure when exhausted
 - **Schema smells** — JSON blobs that should be columns, columns that should be separate tables, no partitioning on time-series data
 - **Missing read replicas / write-heavy hotspots**
+- **No sharding/partitioning strategy** documented as data grows past what a single node can hold
+- **Offset-based pagination on large, growing tables** — `OFFSET 100000` degrades linearly with offset; prefer keyset/cursor pagination for anything past a few thousand rows
 
 ### Caching
 
@@ -65,6 +69,8 @@ Checklist, not script. Prioritize what the project actually uses; skip sections 
 - **Missing backpressure** — producers that can outrun consumers indefinitely
 - **Thread/async executor exhaustion** — blocking calls on async runtimes (the classic `requests.get` inside an `async def`)
 - **Fan-out without fan-in limits** — `Promise.all` over unbounded arrays
+- **Missing rate limiting / throttling at the API boundary** — no per-client or per-tenant quota; one caller can starve everyone else
+- **No bulkhead isolation** — one dependency's thread/connection pool exhaustion cascades into unrelated request paths; isolate pools per dependency
 
 ### Memory & resource usage
 
@@ -102,10 +108,20 @@ Checklist, not script. Prioritize what the project actually uses; skip sections 
 - **Sticky sessions** or instance affinity that blocks autoscaling
 - **Hardcoded config** — hostnames, limits, capacities baked in
 - **No circuit breakers** on downstream dependencies
+- **No graceful shutdown** — process doesn't drain in-flight requests or handle SIGTERM before the orchestrator/autoscaler kills it (twelve-factor "disposability")
+- **No health/readiness checks distinct from liveness** — the load balancer keeps routing to instances that are overloaded or mid-startup
+- **No load-shedding / graceful-degradation path** — the system has no way to shed low-priority work under saturation; it just falls over
+
+### Multi-tenancy (when the target has tenants)
+
+- **Noisy-neighbor exposure** — no per-tenant resource quotas/rate limits; one tenant's spike degrades everyone else
+- **Shared hot keys/partitions** — a single tenant or entity dominates a shard/cache key, creating a hot-partition bottleneck
+- **Severity scales with blast radius, not just latency** — a bottleneck contained to one tenant is lower severity than the same bottleneck on a shared/global resource affecting all tenants
 
 ### Observability gaps (scalability-relevant)
 
-- **No metrics** on request duration, queue depth, DB query times, cache hit rate
+- **No USE-method coverage** (Utilization / Saturation / Errors, per resource) — no visibility into CPU, memory, disk, connection pools, or queue saturation
+- **No RED-method coverage** (Rate / Errors / Duration, per service/endpoint) — can't answer "is this API healthy" from metrics alone
 - **No tracing** across service boundaries in distributed setups
 - **No alerts** on scalability-relevant signals (high latency, pool exhaustion, queue lag)
 
@@ -120,6 +136,8 @@ Observability issues are usually **MEDIUM** unless a specific outage would be un
 - **INFO** — Observations worth knowing but not problems.
 
 Cap yourself at ~3 CRITICAL per audit. If everything is CRITICAL, nothing is.
+
+If the project has no load/capacity testing at all, cap findings' confidence at **medium** and say so explicitly in Notes — the ceiling is inferred from code reading, not measured under load.
 
 ## Resolution quality
 
@@ -153,7 +171,7 @@ Return the report in the user's `language` for prose; severity labels stay Engli
 ### [CRITICAL] <short title>
 
 - **Location:** `path/to/file.ext:line` (or `project-wide`)
-- **Category:** <database | caching | concurrency | memory | i/o | infrastructure | algorithm | background-jobs | observability>
+- **Category:** <database | caching | concurrency | memory | i/o | infrastructure | multi-tenancy | algorithm | background-jobs | observability>
 - **Description:** <what's wrong, what you observed>
 - **Impact:** <concrete failure mode, at what scale / load>
 - **Resolution:** <concrete fix steps>

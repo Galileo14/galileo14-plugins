@@ -31,9 +31,11 @@ If a critical input is missing, make the best reasonable choice and proceed. Do 
 
 Care about current vulnerabilities AND weak posture.
 
+**Standards this lens draws from:** OWASP Top 10 (spine), OWASP API Security Top 10 (for API surfaces), OWASP Top 10 for LLM Applications (for LLM/agentic surfaces), OWASP ASVS (verification depth for auth/session/crypto categories), and CWE Top 25 Most Dangerous Software Weaknesses (cross-check for anything the checklist below misses). Treat these as spine, not cage — a finding doesn't need a standard citation to be valid, but citing one strengthens the report's credibility.
+
 ## What to look for
 
-Use OWASP Top 10 as spine, not cage.
+Use OWASP Top 10 as spine, not cage. When the target exposes a REST/GraphQL API, also apply the OWASP API Security Top 10 in full — not just the BOLA/mass-assignment subset below. When the target embeds LLM calls or agentic tool-use, also apply the OWASP Top 10 for LLM Applications as a secondary spine.
 
 ### Injection
 
@@ -41,7 +43,9 @@ Use OWASP Top 10 as spine, not cage.
 - **Command injection** — `exec()` / `spawn()` / shell calls with user input, especially `shell: true`
 - **NoSQL injection** — Mongo query operators injected via JSON
 - **LDAP / XML / template injection** — user input ending up in a DSL
-- **Prompt injection** — user input flowing unfiltered into LLM system prompts
+- **Prompt injection (direct)** — user input flowing unfiltered into LLM system prompts
+- **Prompt injection (indirect)** — untrusted content from retrieved documents, web pages, or tool results fed back into the LLM context as if it were trusted instruction
+- **ReDoS** — user-controlled input passed into a regex with catastrophic backtracking potential
 - **Path traversal** — `fs.readFile(userInput)` without sanitization; `..` handling
 
 ### Authentication
@@ -53,6 +57,8 @@ Use OWASP Top 10 as spine, not cage.
 - **Long-lived tokens** — JWTs that never expire, refresh tokens with no revocation
 - **Insecure token storage** — JWTs in localStorage, tokens in query strings
 - **Password reset flows** — predictable tokens, no expiry, email-only verification
+- **JWT algorithm confusion** — `alg: none` accepted, HS256/RS256 confusion, missing `aud`/`iss` validation
+- **OAuth/OIDC flow flaws** — missing PKCE on public clients, unchecked `redirect_uri` (open redirect into token theft), missing or predictable `state` parameter
 
 ### Authorization (authz)
 
@@ -61,6 +67,19 @@ Use OWASP Top 10 as spine, not cage.
 - **Privilege escalation paths** — roles that can modify their own permissions
 - **Missing tenant isolation** in multi-tenant queries
 - **Principle of least privilege violations** — services with root/admin when scoped would do
+- **Excessive agentic tool permissions** — an LLM agent wired to write-capable tools (file write, shell, payments) with no human-in-the-loop gate for high-impact actions
+
+### API-specific (OWASP API Security Top 10)
+
+- **Excessive data exposure** — endpoint returns the full object/DB row and relies on the client to filter fields for display, instead of shaping the response server-side
+- **Unrestricted resource consumption** — no request size/pagination caps, no per-client quota on expensive endpoints (search, export, LLM calls), unbounded array/nested-object depth in JSON bodies
+- **Unrestricted access to sensitive business flows** — no anti-automation control on flows valuable to abuse at scale (account creation, coupon redemption, inventory reservation) even when individually authorized
+- **Shadow / zombie APIs** — deprecated or undocumented API versions still reachable and unmonitored
+- **Unsafe consumption of upstream APIs** — trusting a third-party API's response schema or redirects without validation, following redirects blindly
+
+### Business logic
+
+- **Check-then-act / TOCTOU race conditions** — a concurrency gap in payment, inventory, or approval flows exploitable by firing concurrent requests (e.g. redeeming the same coupon twice before the first redemption commits)
 
 ### Secrets & credentials
 
@@ -102,6 +121,7 @@ Use OWASP Top 10 as spine, not cage.
 - **No lockfile** or lockfile ignored
 - **Install-time scripts** from untrusted sources
 - **Missing pinning** on critical infra (Docker `:latest`)
+- **Software supply-chain integrity gaps** — no build provenance/attestation (SLSA), unverified package publisher, no SBOM, CI/CD pipeline pulling unpinned third-party actions/scripts at build time
 
 ### CORS / CSRF
 
@@ -124,6 +144,8 @@ Use OWASP Top 10 as spine, not cage.
 - **Debug endpoints** left enabled (`/debug`, `/actuator/env`, `/_admin`)
 - **`.git/`, `.env`, `.DS_Store`** exposed via static file serving
 - **Server/framework version headers**
+- **Mishandled exceptional conditions** — broad `catch` blocks around security-relevant logic that fail open instead of fail closed (e.g. an auth check throws → request proceeds anyway)
+- **Missing security headers** — no CSP, no `X-Frame-Options`/`frame-ancestors` (clickjacking exposure)
 
 ### Client-side / static-site specific
 
@@ -150,12 +172,18 @@ Use OWASP Top 10 as spine, not cage.
 - **GitHub Actions with `pull_request_target`** running untrusted code privileged
 - **Missing branch protection / required reviews**
 
+## Out of scope
+
+- No exploit code, payloads, or step-by-step attack instructions.
+- Don't flag every non-standard choice as a vulnerability — evaluate in context. CLI tool ≠ needs CSRF; static marketing site ≠ needs session management.
+- Don't treat "no tests" as a security finding — that's an architecture concern.
+
 ## Severity guidance
 
-- **CRITICAL** — Directly exploitable now by unauthenticated attacker, or live data exposure. E.g. hardcoded prod API key in public repo; SQL injection in login; RCE via eval on user input.
-- **HIGH** — Exploitable with preconditions or by authenticated low-privilege attacker. E.g. IDOR on user records; missing authz on admin endpoint.
-- **MEDIUM** — Weakens posture meaningfully but not a direct exploit path. E.g. weak password policy, missing CSRF on low-impact endpoint, verbose errors.
-- **LOW** — Hardening gaps, defense-in-depth. E.g. missing `X-Content-Type-Options`; long session lifetime.
+- **CRITICAL** — Directly exploitable now by unauthenticated attacker, or live data exposure. E.g. hardcoded prod API key in public repo; SQL injection in login; RCE via eval on user input; prompt injection that reaches a write-capable agentic tool (file write, shell, payments) with no human-in-the-loop gate.
+- **HIGH** — Exploitable with preconditions or by authenticated low-privilege attacker. E.g. IDOR on user records; missing authz on admin endpoint; JWT `alg: none` acceptance or missing `aud`/`iss` validation; missing PKCE on a public OAuth client.
+- **MEDIUM** — Weakens posture meaningfully but not a direct exploit path. E.g. weak password policy, missing CSRF on low-impact endpoint, verbose errors, unrestricted resource consumption (no pagination/quota cap on an expensive endpoint).
+- **LOW** — Hardening gaps, defense-in-depth. E.g. missing `X-Content-Type-Options` or CSP; long session lifetime; shadow/deprecated API version still reachable.
 - **INFO** — Observations about threat model and posture.
 
 Be rigorous with CRITICAL. Reserve it for stop-ship items. Cap at ~3 per audit.
@@ -163,12 +191,6 @@ Be rigorous with CRITICAL. Reserve it for stop-ship items. Cap at ~3 per audit.
 ## Resolution quality
 
 Every finding needs a concrete fix. Bad: "Sanitize user input." Good: "Replace the string concatenation in `api/search.ts:17` with a parameterized query using `db.query(sql, params)`. Example: `db.query('SELECT * FROM items WHERE name = $1', [req.query.q])`."
-
-## Out of scope
-
-- No exploit code, payloads, or step-by-step attack instructions.
-- Don't flag every non-standard choice as a vulnerability — evaluate in context. CLI tool ≠ needs CSRF; static marketing site ≠ needs session management.
-- Don't treat "no tests" as a security finding — that's an architecture concern.
 
 ## Scope
 
@@ -196,7 +218,7 @@ Return the report in the user's `language` for prose; severity labels stay Engli
 ### [CRITICAL] <short title>
 
 - **Location:** `path/to/file.ext:line` (or `project-wide`)
-- **Category:** <injection | auth | authz | secrets | crypto | session | input-validation | dependency | cors/csrf | file-upload | logging | info-disclosure | client-side | infra>
+- **Category:** <injection | auth | authz | api | business-logic | secrets | crypto | session | input-validation | dependency | cors/csrf | file-upload | logging | info-disclosure | client-side | infra>
 - **Description:** <what's wrong, what you observed>
 - **Impact:** <attack category, data at risk, blast radius — not a how-to>
 - **Resolution:** <concrete fix steps>

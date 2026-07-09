@@ -59,11 +59,12 @@ Set `description` to `"Architecture audit — <project name>"`. Do NOT override 
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-architecture-audit/assets/report-template.md`. Fill every placeholder using the agent's output:
 
-- **Executive summary** — write fresh from the agent's findings. Rank top 3 findings by severity × blast radius.
+- **Executive summary** — write fresh from the agent's Summary and Overall rating. Highlight the single biggest architectural risk in one clear sentence.
+- **Top findings table** — pick up to 5 highest-severity findings, ordered by severity then blast radius.
 - **Severity counts** — real numbers per severity level.
-- **Architecture section** — paste the agent's findings verbatim, preserving their ordering.
+- **Findings section** — paste the agent's findings verbatim, preserving their ordering (CRITICAL → HIGH → MEDIUM → LOW → INFO).
 - **Prioritized action plan** — build it yourself from effort × severity × blast radius, NOT raw severity alone. "Do first" = CRITICAL/HIGH with S/M effort. "Do next" = HIGH with L effort + MEDIUM that compounds. "Backlog" = LOW + INFO + opportunistic.
-- **Caveats** — copy the agent's "Notes & caveats" section verbatim.
+- **Methodology caveats** — copy the agent's "Notes & caveats" section verbatim.
 - **Output language** — report prose matches the language the user is using in the current conversation. Default to English if unclear. Severity labels (CRITICAL / HIGH / MEDIUM / LOW / INFO) always stay in English — they're greppable.
 
 Save with `Write` to `$REPORT_PATH`.
@@ -75,12 +76,12 @@ Brief chat message only — the full report is in the file:
 ```
 Architecture audit complete → <report-path>
 
-Counts: X CRIT / Y HIGH / Z MED / W LOW / V INFO
+Counts: X CRITICAL / Y HIGH / Z MEDIUM / W LOW / V INFO
 
 Top 3 findings:
-1. [SEV] Title — effort S|M|L
-2. [SEV] Title — effort S|M|L
-3. [SEV] Title — effort S|M|L
+1. [SEV] Title — category
+2. [SEV] Title — category
+3. [SEV] Title — category
 ```
 
 Don't dump the report into chat.
@@ -88,6 +89,7 @@ Don't dump the report into chat.
 ## Hard rules
 
 - **Don't duplicate the agent.** All lens content (what to look for, severity rubric, output contract) lives in `${CLAUDE_PLUGIN_ROOT}/agents/architecture-auditor.md`. If you find yourself tempted to re-state it here, stop — update the agent instead.
-- **One agent, one lens.** No scope creep into scalability or security; those have their own agents.
-- **Read-only.** Never modify target code.
+- **One agent, one lens.** No scope creep into security, scalability, clean-code, or database — those have their own agents.
+- **Read-only.** Never modify target code. The agent's tools are constrained to read-only; keep this skill aligned.
 - **Template is the contract.** Don't renegotiate mid-run.
+- **Severity labels stay English** — they are greppable across reports.

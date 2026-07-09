@@ -1,0 +1,341 @@
+<!--
+  g14-full-audit HTML report template — combined, multi-lens.
+  Self-contained: inline CSS only, no external fonts/scripts/CDN links.
+  Placeholders are in {{double-curly}} format. Fill every placeholder.
+  Only include a lens <section> for lenses that were actually run — delete
+  the others entirely, don't leave empty placeholder sections.
+  Severity labels (CRITICAL / HIGH / MEDIUM / LOW / INFO) stay in English.
+  Must report the exact same findings/counts as report-template.md — only
+  the rendering differs.
+-->
+<!doctype html>
+<html lang="{{en|es|...}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Audit Report — {{project_name}}</title>
+<style>
+  :root {
+    --accent: #3e38f2;
+    --accent-soft: #eeeeff;
+    --crit: #b3261e;
+    --crit-bg: #fdecea;
+    --high: #b45309;
+    --high-bg: #fef3e2;
+    --med: #8a6d00;
+    --med-bg: #fdf6dc;
+    --low: #2f6f3e;
+    --low-bg: #e9f5ec;
+    --info: #3a5a7a;
+    --info-bg: #eaf1f8;
+    --bg: #ffffff;
+    --surface: #faf9ff;
+    --border: #e4e2f5;
+    --text: #1c1c26;
+    --text-muted: #5b5a6e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #8b85ff;
+      --accent-soft: #23213f;
+      --crit-bg: #3a1f1d;
+      --high-bg: #3a2c14;
+      --med-bg: #37300f;
+      --low-bg: #16301d;
+      --info-bg: #182a3a;
+      --bg: #131320;
+      --surface: #191926;
+      --border: #2b2a45;
+      --text: #eceaf7;
+      --text-muted: #a6a4c0;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 5rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 1.7rem; margin: 0 0 .25rem; }
+  h2 {
+    font-size: 1.2rem;
+    margin: 2.5rem 0 1rem;
+    padding-bottom: .4rem;
+    border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+  }
+  h3 { font-size: 1.02rem; margin: 1.4rem 0 .5rem; }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: .5rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0 2rem;
+    font-size: .88rem;
+  }
+  .meta div span { display: block; color: var(--text-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
+  .rating {
+    display: inline-block;
+    font-weight: 600;
+    padding: .15rem .6rem;
+    border-radius: 999px;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+  }
+  .rating.healthy { background: var(--low-bg); color: var(--low); }
+  .rating.at-risk { background: var(--high-bg); color: var(--high); }
+  .rating.critical { background: var(--crit-bg); color: var(--crit); }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 0 0 1.5rem; }
+  th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; }
+  .badge {
+    display: inline-block;
+    font-weight: 700;
+    font-size: .72rem;
+    letter-spacing: .02em;
+    padding: .1rem .5rem;
+    border-radius: 5px;
+  }
+  .badge.CRITICAL { background: var(--crit-bg); color: var(--crit); }
+  .badge.HIGH { background: var(--high-bg); color: var(--high); }
+  .badge.MEDIUM { background: var(--med-bg); color: var(--med); }
+  .badge.LOW { background: var(--low-bg); color: var(--low); }
+  .badge.INFO { background: var(--info-bg); color: var(--info); }
+  .counts { display: flex; gap: .75rem; flex-wrap: wrap; margin: 0 0 1.5rem; }
+  .counts .pill {
+    flex: 1 1 90px;
+    text-align: center;
+    border-radius: 10px;
+    padding: .6rem .5rem;
+    border: 1px solid var(--border);
+  }
+  .counts .pill b { display: block; font-size: 1.3rem; }
+  .finding {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+    margin: 0 0 .9rem;
+    background: var(--surface);
+  }
+  .finding.CRITICAL { border-left-color: var(--crit); }
+  .finding.HIGH { border-left-color: var(--high); }
+  .finding.MEDIUM { border-left-color: var(--med); }
+  .finding.LOW { border-left-color: var(--low); }
+  .finding.INFO { border-left-color: var(--info); }
+  .finding h4 { margin: 0 0 .5rem; font-size: .98rem; }
+  .finding dl { margin: 0; font-size: .87rem; }
+  .finding dt { color: var(--text-muted); margin-top: .4rem; }
+  .finding dd { margin: 0 0 0 0; }
+  .finding code { background: var(--accent-soft); padding: .05rem .3rem; border-radius: 4px; font-size: .85em; }
+  details.lens-section {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .3rem 1.1rem 1rem;
+    margin: 0 0 1rem;
+  }
+  details.lens-section > summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: .8rem 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  details.lens-section > summary::-webkit-details-marker { display: none; }
+  ul.action-list { list-style: none; margin: 0 0 1.5rem; padding: 0; }
+  ul.action-list li {
+    padding: .5rem .7rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: .4rem;
+    font-size: .9rem;
+  }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: .8rem; color: var(--text-muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Full Audit Report</h1>
+  <div class="meta">
+    <div><span>Project</span>{{project_name}}</div>
+    <div><span>Path</span>{{absolute_path}}</div>
+    <div><span>Date</span>{{YYYY-MM-DD HH:MM}}</div>
+    <div><span>Auditor</span>Claude Code — audit:g14-full-audit</div>
+    <div><span>Lenses run</span>{{comma-separated list}}</div>
+    <div><span>Scope</span>{{files_analyzed}} files · {{loc_approx}} LOC (approx.)</div>
+  </div>
+
+  <h2>Executive Summary</h2>
+  <p><span class="rating {{healthy|at-risk|critical}}">{{healthy | at-risk | critical}}</span> — overall rating (worst among lenses run)</p>
+  <p>{{3–6 sentence narrative: what kind of project this is, the single biggest risk across all lenses, one sentence per lens run on its posture.}}</p>
+
+  <h3>Cross-lens top findings</h3>
+  <table>
+    <thead><tr><th>#</th><th>Severity</th><th>Lens</th><th>Category</th><th>Finding</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><span class="badge {{SEV}}">{{SEV}}</span></td><td>{{lens}}</td><td>{{cat}}</td><td>{{one-line title}}</td></tr>
+      <tr><td>2</td><td><span class="badge {{SEV}}">{{SEV}}</span></td><td>{{lens}}</td><td>{{cat}}</td><td>{{one-line title}}</td></tr>
+      <tr><td>3</td><td><span class="badge {{SEV}}">{{SEV}}</span></td><td>{{lens}}</td><td>{{cat}}</td><td>{{one-line title}}</td></tr>
+      <!-- repeat rows up to 5-8 total -->
+    </tbody>
+  </table>
+
+  <h3>Combined severity counts</h3>
+  <div class="counts">
+    <div class="pill"><b>{{n}}</b>CRITICAL</div>
+    <div class="pill"><b>{{n}}</b>HIGH</div>
+    <div class="pill"><b>{{n}}</b>MEDIUM</div>
+    <div class="pill"><b>{{n}}</b>LOW</div>
+    <div class="pill"><b>{{n}}</b>INFO</div>
+  </div>
+
+  <h3>Per-lens breakdown</h3>
+  <table>
+    <thead><tr><th>Lens</th><th>Rating</th><th>CRIT</th><th>HIGH</th><th>MED</th><th>LOW</th><th>INFO</th></tr></thead>
+    <tbody>
+      <!-- one row per lens run, omit rows for lenses not run -->
+      <tr>
+        <td>{{lens}}</td>
+        <td><span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></td>
+        <td>{{n}}</td><td>{{n}}</td><td>{{n}}</td><td>{{n}}</td><td>{{n}}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!--
+    One <details> block per lens run. Delete blocks for lenses that weren't run.
+    Each finding is one .finding div. Order CRITICAL -> HIGH -> MEDIUM -> LOW -> INFO.
+    If a lens ran clean, put a single <p>No findings.</p> inside instead of finding divs.
+  -->
+
+  <details class="lens-section" open>
+    <summary>Security — <span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></summary>
+    <p>{{one-sentence justification from the agent's Overall rating}}</p>
+
+    <div class="finding CRITICAL">
+      <h4>[CRITICAL] {{short title}}</h4>
+      <dl>
+        <dt>Location</dt><dd><code>{{path/to/file.ext:line}}</code></dd>
+        <dt>Category</dt><dd>{{injection | auth | authz | api | business-logic | secrets | crypto | session | input-validation | dependency | cors/csrf | file-upload | logging | info-disclosure | client-side | infra}}</dd>
+        <dt>Description</dt><dd>{{what's wrong, observed in the code}}</dd>
+        <dt>Impact</dt><dd>{{attack category, data at risk, blast radius}}</dd>
+        <dt>Resolution</dt><dd>{{concrete fix steps}}</dd>
+        <dt>Effort / Confidence</dt><dd>{{S|M|L}} / {{high|medium|low}}</dd>
+      </dl>
+    </div>
+    <!-- repeat .finding blocks per finding -->
+  </details>
+
+  <details class="lens-section" open>
+    <summary>Scalability — <span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></summary>
+    <p>{{one-sentence justification}}</p>
+
+    <div class="finding CRITICAL">
+      <h4>[CRITICAL] {{short title}}</h4>
+      <dl>
+        <dt>Location</dt><dd><code>{{path/to/file.ext:line}}</code></dd>
+        <dt>Category</dt><dd>{{database | caching | concurrency | memory | i/o | infrastructure | multi-tenancy | algorithm | background-jobs | observability}}</dd>
+        <dt>Description</dt><dd>{{what's wrong, observed in the code}}</dd>
+        <dt>Impact</dt><dd>{{concrete failure mode, at what scale / load}}</dd>
+        <dt>Resolution</dt><dd>{{concrete fix steps}}</dd>
+        <dt>Effort / Confidence</dt><dd>{{S|M|L}} / {{high|medium|low}}</dd>
+      </dl>
+    </div>
+    <!-- repeat .finding blocks per finding -->
+  </details>
+
+  <details class="lens-section" open>
+    <summary>Architecture — <span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></summary>
+    <p>{{one-sentence justification}}</p>
+
+    <div class="finding CRITICAL">
+      <h4>[CRITICAL] {{short title}}</h4>
+      <dl>
+        <dt>Location</dt><dd><code>{{path/to/file.ext:line}}</code></dd>
+        <dt>Category</dt><dd>{{coupling | cohesion | layering | duplication | dead-code | god-object | abstraction | dependency-direction | testability | naming | documentation | consistency | tech-debt | structure}}</dd>
+        <dt>Description</dt><dd>{{what's wrong, observed in the code}}</dd>
+        <dt>Impact</dt><dd>{{maintainability cost, onboarding friction, velocity hit, change-risk}}</dd>
+        <dt>Resolution</dt><dd>{{concrete fix steps, phased if multi-sprint}}</dd>
+        <dt>Effort / Confidence</dt><dd>{{S|M|L}} / {{high|medium|low}}</dd>
+      </dl>
+    </div>
+    <!-- repeat .finding blocks per finding -->
+  </details>
+
+  <details class="lens-section" open>
+    <summary>Clean Code — <span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></summary>
+    <p>{{one-sentence justification}}</p>
+
+    <div class="finding CRITICAL">
+      <h4>[CRITICAL] {{short title}}</h4>
+      <dl>
+        <dt>Location</dt><dd><code>{{path/to/file.ext:line}}</code></dd>
+        <dt>Category</dt><dd>{{naming | function-length | nesting | duplication | comment-hygiene | dead-code | magic-constants | god-object | domain-modeling | abstraction-leak | style-consistency | complexity-without-tests}}</dd>
+        <dt>Description</dt><dd>{{what was observed, with exact file:line}}</dd>
+        <dt>Why it bites</dt><dd>{{concrete maintenance cost}}</dd>
+        <dt>Fix</dt><dd>{{concrete refactor steps}}</dd>
+        <dt>Effort / Confidence</dt><dd>{{S|M|L}} / {{high|medium|low}}</dd>
+      </dl>
+    </div>
+    <!-- repeat .finding blocks per finding -->
+  </details>
+
+  <details class="lens-section" open>
+    <summary>Database — <span class="rating {{healthy|at-risk|critical}}">{{healthy|at-risk|critical}}</span></summary>
+    <p>{{one-sentence justification}}</p>
+
+    <div class="finding CRITICAL">
+      <h4>[CRITICAL] {{short title}}</h4>
+      <dl>
+        <dt>Location</dt><dd><code>{{path/to/file.ext:line}}</code></dd>
+        <dt>Category</dt><dd>{{schema | referential-integrity | migrations | indexing | query-patterns | transactions | data-access-security | orm | backups-retention}}</dd>
+        <dt>Description</dt><dd>{{what's wrong, observed in the code}}</dd>
+        <dt>Impact</dt><dd>{{concrete failure mode — data loss, corruption, breach, latency}}</dd>
+        <dt>Resolution</dt><dd>{{concrete fix steps}}</dd>
+        <dt>Effort / Confidence</dt><dd>{{S|M|L}} / {{high|medium|low}}</dd>
+      </dl>
+    </div>
+    <!-- repeat .finding blocks per finding -->
+  </details>
+
+  <h2>Prioritized Action Plan</h2>
+
+  <h3>Do first (this sprint)</h3>
+  <ul class="action-list">
+    <li><span class="badge {{SEV}}">{{SEV}}</span> {{title}} — {{lens}}, effort {{S|M|L}}</li>
+  </ul>
+
+  <h3>Do next (next 30 days)</h3>
+  <ul class="action-list">
+    <li><span class="badge {{SEV}}">{{SEV}}</span> {{title}} — {{lens}}, effort {{S|M|L}}</li>
+  </ul>
+
+  <h3>Backlog / consider</h3>
+  <ul class="action-list">
+    <li><span class="badge {{SEV}}">{{SEV}}</span> {{title}} — {{lens}}, effort {{S|M|L}}</li>
+  </ul>
+
+  <h2>Methodology &amp; caveats</h2>
+  <p><b>Lenses run:</b> {{comma-separated list}}. <b>Lenses not run:</b> {{comma-separated list, or "none"}} — {{user's choice, not a failure}}.</p>
+  <p><b>Analysts:</b> one agent invocation per lens run, launched in parallel — <code>security-auditor</code>, <code>scalability-auditor</code>, <code>architecture-auditor</code>, <code>clean-code-auditor</code>, <code>database-auditor</code>. All read-only codebase exploration (Read / Glob / Grep / Bash). No target files were modified.</p>
+  <p><b>Scope skipped:</b> node_modules/, vendor/, dist/, build/, .next/, compiled assets, lockfiles, generated code, minified bundles.</p>
+  <p><b>Per-lens caveats:</b> {{copy each ran agent's own "Notes &amp; caveats" section here, one paragraph per lens, labeled with the lens name}}</p>
+
+  <footer>
+    Severity legend — CRITICAL: stop-ship across any lens. HIGH: clear near-term risk, fix this sprint. MEDIUM: real issue, schedule this quarter. LOW: minor/opportunistic. INFO: observation, not a defect.
+  </footer>
+
+</div>
+</body>
+</html>

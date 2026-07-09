@@ -36,7 +36,7 @@
     {
       "name": "audit",
       "source": "./plugins/audit",
-      "description": "Codebase audits through four focused lenses — security, scalability, architecture and clean-code, each a dedicated subagent — plus a skill auditor that reviews Claude Code skills against the five-controls framework. Output adapts to the user's language.",
+      "description": "Codebase audits through five focused lenses — security, scalability, architecture, clean-code and database, each a dedicated subagent — plus a full-audit orchestrator that runs any combination in parallel with a combined markdown+HTML report, and a skill auditor that reviews Claude Code skills against the five-controls framework. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
       "repository": "https://github.com/Galileo14/galileo14-plugins",
       "author": {
@@ -44,7 +44,7 @@
         "email": "info@galileo14.com"
       },
       "category": "code-quality",
-      "keywords": ["audit", "security", "scalability", "architecture", "clean-code", "skill-audit"]
+      "keywords": ["audit", "security", "scalability", "architecture", "clean-code", "database", "full-audit", "skill-audit"]
     }
   ]
 }
