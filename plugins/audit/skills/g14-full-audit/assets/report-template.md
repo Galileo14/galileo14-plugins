@@ -169,7 +169,7 @@ _LOW / INFO / opportunistic fixes across every lens run._
 
 ## Methodology & caveats
 
-**Lenses run:** {{comma-separated list}}. **Lenses not run:** {{comma-separated list, or "none"}} — {{user's choice, not a failure}}.
+**Lenses run:** {{comma-separated list}}. **Lenses not run:** {{comma-separated list, or "none"}} — {{reason per lens: "user's choice" or, if a lens Task still failed after one retry, "agent failed"}}.
 
 **Analysts:** one agent invocation per lens run, launched in parallel — `security-auditor`, `scalability-auditor`, `architecture-auditor`, `clean-code-auditor`, `database-auditor` at `${CLAUDE_PLUGIN_ROOT}/agents/` (source of truth for each lens). All read-only codebase exploration (Read / Glob / Grep / Bash). No target files were modified.
 

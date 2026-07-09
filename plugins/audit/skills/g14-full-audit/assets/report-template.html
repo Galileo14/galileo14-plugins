@@ -327,7 +327,7 @@
   </ul>
 
   <h2>Methodology &amp; caveats</h2>
-  <p><b>Lenses run:</b> {{comma-separated list}}. <b>Lenses not run:</b> {{comma-separated list, or "none"}} — {{user's choice, not a failure}}.</p>
+  <p><b>Lenses run:</b> {{comma-separated list}}. <b>Lenses not run:</b> {{comma-separated list, or "none"}} — {{reason per lens: "user's choice" or, if a lens Task still failed after one retry, "agent failed"}}.</p>
   <p><b>Analysts:</b> one agent invocation per lens run, launched in parallel — <code>security-auditor</code>, <code>scalability-auditor</code>, <code>architecture-auditor</code>, <code>clean-code-auditor</code>, <code>database-auditor</code>. All read-only codebase exploration (Read / Glob / Grep / Bash). No target files were modified.</p>
   <p><b>Scope skipped:</b> node_modules/, vendor/, dist/, build/, .next/, compiled assets, lockfiles, generated code, minified bundles.</p>
   <p><b>Per-lens caveats:</b> {{copy each ran agent's own "Notes &amp; caveats" section here, one paragraph per lens, labeled with the lens name}}</p>

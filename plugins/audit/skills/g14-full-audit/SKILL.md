@@ -72,6 +72,8 @@ in the format your agent file specifies.
 
 Set each call's `description` to `"<Lens> audit — <project name>"`. Do NOT override any agent's model/effort/tools — they are fixed in each agent's frontmatter for a reason. Wait for all chosen agents to return before consolidating.
 
+If a lens `Task` errors, times out, or returns no usable report, retry that lens once (same inputs). If it still fails, don't count it as run: move it to "Lenses not run" in step 4 with reason `agent failed` — distinct from a lens the user chose not to run — and call this out explicitly in the step 5 chat summary.
+
 ### 4 · Consolidate the combined reports
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-full-audit/assets/report-template.md` and `${CLAUDE_PLUGIN_ROOT}/skills/g14-full-audit/assets/report-template.html`. Fill every placeholder in both from the same underlying data — they must report identical findings and counts, only the rendering differs:
@@ -82,10 +84,12 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-full-audit/assets/report-template.md` and
 - **Combined severity counts** — sum of CRITICAL/HIGH/MEDIUM/LOW/INFO across all lenses run, plus a per-lens breakdown table.
 - **One section per lens run** — paste that lens agent's findings verbatim (preserving CRITICAL → HIGH → MEDIUM → LOW → INFO ordering) under its own heading. Skip sections for lenses that weren't run — do not write placeholder text for them.
 - **Prioritized action plan** — build one combined plan from effort × severity × blast radius across every lens run, same bucketing as the single-lens skills ("Do first" / "Do next" / "Backlog").
-- **Methodology & caveats** — list which lenses ran, which were skipped and why (user choice, not a failure), and copy each ran agent's own "Notes & caveats" verbatim under its lens.
+- **Methodology & caveats** — list which lenses ran, which were skipped and why (user's choice, or `agent failed` if a lens Task still failed after one retry), and copy each ran agent's own "Notes & caveats" verbatim under its lens.
 - **Output language** — report prose matches the language the user is using in the current conversation. Default to English if unclear. Severity labels (CRITICAL / HIGH / MEDIUM / LOW / INFO) always stay in English — they are greppable.
 
 Save the markdown with `Write` to `$REPORT_MD_PATH` and the HTML with `Write` to `$REPORT_HTML_PATH`.
+
+Then run a mechanical parity check: count each severity badge (CRITICAL / HIGH / MEDIUM / LOW / INFO) in both saved files and confirm the counts match before reporting back. If they don't, the two files have drifted — fix whichever file is wrong, then re-check before moving to step 5.
 
 ### 5 · Report back
 
@@ -96,6 +100,7 @@ Full audit complete → <report-md-path>
 HTML version → <report-html-path>
 
 Lenses run: Security, Scalability, ... (N of 5)
+Lenses not run: {{comma-separated list with reason per lens, e.g. "Database (user's choice)", "Architecture (agent failed after retry)" — omit this line if all chosen lenses ran}}
 
 Combined counts: X CRITICAL / Y HIGH / Z MEDIUM / W LOW / V INFO
 

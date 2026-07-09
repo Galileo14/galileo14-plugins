@@ -176,8 +176,13 @@ def main():
         non_empty = len(files) > 0
         # "wired" = a PATH-SHAPED reference to the folder appears in SKILL.md
         # (e.g. `references/x.md`), not just the bare prose word "references".
-        # Matching the word caused orphan false-negatives.
-        path_referenced = bool(re.search(r"(?<![\w/])" + re.escape(folder) + r"/", skillmd))
+        # Matching the word caused orphan false-negatives. The lookbehind only
+        # excludes a preceding word character (not "/"), so the recommended
+        # ${CLAUDE_PLUGIN_ROOT}/skills/<name>/references/x.md form — where
+        # "references/" is preceded by "/" — still counts as wired. Excluding
+        # "/" too caused false orphan/GAP reports against skills correctly
+        # wired via the plugin-root form.
+        path_referenced = bool(re.search(r"(?<!\w)" + re.escape(folder) + r"/", skillmd))
         # A folder that doesn't exist cannot be meaningfully "wired" — reporting
         # present:false + wired:true is a self-contradiction that misleads the
         # auditor (a skill that *teaches* about scripts/ or tests/ mentions those

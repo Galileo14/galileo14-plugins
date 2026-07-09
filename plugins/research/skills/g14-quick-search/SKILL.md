@@ -1,6 +1,6 @@
 ---
 name: g14-quick-search
-description: "Runs 5 parallel web searches via the `web-searcher` agent to give a quick panoramic overview of any topic, then synthesizes them inline via `research-synthesizer` (format: inline-summary, ~250 words). Use it whenever the user asks for a quick search on X, quick overview of Y, what's known about Z, panoramic view of X, give me a quick recap of Y, or any variation implying fast reconnaissance of a topic's state without needing an exhaustive report. Also triggers with /g14-quick-search. If the user doesn't provide an explicit query, extract the most recent topic from the conversation."
+description: "Runs 5 parallel web searches via the `web-searcher` agent to give a quick panoramic overview of any topic, then synthesizes them inline via `research-synthesizer` (format: inline-summary, ~250 words). Use it whenever the user asks for a quick search on X, quick overview of Y, what's known about Z, panoramic view of X, give me a quick recap of Y, or any variation implying fast reconnaissance of a topic's state without needing an exhaustive report. Also triggers with /g14-quick-search. Also triggers for 'búsqueda rápida sobre X', 'resumen rápido de Y', 'qué se sabe de Z', 'vistazo rápido a X'. If the user doesn't provide an explicit query, extract the most recent topic from the conversation."
 ---
 
 # g14-quick-search
@@ -56,6 +56,8 @@ For each angle, invoke `Task` with `subagent_type: web-searcher` and prompt:
 - `language: {detected language}`
 
 The agent runs the searches and returns a tight 200-word block per angle.
+
+If one of the 5 calls errors out or returns no useful results for its angle, drop that block — don't retry, g14-quick-search prioritizes speed. Renumber the remaining `FINDING N` blocks sequentially before passing them to the synthesizer, and note in the closing message which angle(s) came up empty.
 
 ### 4. Synthesize inline via `research-synthesizer`
 

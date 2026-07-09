@@ -39,6 +39,9 @@ the run is short and the cost is per-call.
 - `output`: the deliverable to grade (inline text or a path to file/folder).
 - `skill_context` (optional): one sentence on what the skill does. Use it for
   understanding the deliverable's purpose, not for lowering the bar.
+- `audit_rubric_path` (optional): absolute path to `references/audit-rubric.md`,
+  passed only to the calibration grader so it can check the report's severities
+  against the canonical P1/P2/P3 definitions there.
 
 ## Process
 

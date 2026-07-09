@@ -25,15 +25,13 @@
 
 ### Top findings
 
-Ordered by severity, then by blast radius.
+Ordered by severity, then by blast radius. If the audit found fewer than 3 findings total, include only the rows that exist and drop the rest — don't pad the table.
 
 | #   | Severity | Category  | Finding            |
 | --- | -------- | --------- | ------------------ |
 | 1   | {{SEV}}  | {{cat}}   | {{one-line title}} |
 | 2   | {{SEV}}  | {{cat}}   | {{one-line title}} |
 | 3   | {{SEV}}  | {{cat}}   | {{one-line title}} |
-| 4   | {{SEV}}  | {{cat}}   | {{one-line title}} |
-| 5   | {{SEV}}  | {{cat}}   | {{one-line title}} |
 
 ### Severity counts
 

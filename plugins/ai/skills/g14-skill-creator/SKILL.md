@@ -74,6 +74,9 @@ the conversation already; only ask the gaps.
    novel each run?
 6. **What would "wrong" look like?** This is the seed for the evaluation
    criteria in Control 5.
+7. **Where will this skill live?** Inside an existing plugin (name it), or as
+   a project-level / personal skill outside any plugin. This decides whether
+   `${CLAUDE_PLUGIN_ROOT}` paths are even valid — see Step 5.
 
 ### Step 2 — Write the plain skill first (zero controls)
 
@@ -143,10 +146,11 @@ For each control in your plan, follow
 - **Control 5 — Tests (`tests/`).** Write one markdown criteria file per
   concern (accuracy, freshness, tone, safety). Wire `SKILL.md` to dispatch a
   fresh general-purpose subagent per criteria file *as a quality gate* before delivery —
-  never let the same agent grade its own work. Point each subagent at the
-  grader contract at `${CLAUDE_PLUGIN_ROOT}/skills/g14-skill-creator/agents/grader.md`
-  and mirror its recommended dispatch config (`model: sonnet`, tools limited
-  to `Read, Glob, Grep`).
+  never let the same agent grade its own work. Copy this skill's
+  `agents/grader.md` into the new skill's own `agents/grader.md` — a vendored
+  local copy, not a cross-plugin reference — and point each subagent at that
+  copy, mirroring its dispatch config (`model: sonnet`, `effort: high`, tools
+  limited to `Read, Glob, Grep`).
 
 ### Step 5 — Wire everything into SKILL.md
 
@@ -154,6 +158,16 @@ Make `SKILL.md` the orchestrator. For every folder you created, add an
 explicit instruction: read this, run that, dispatch these, fill that template,
 grade against those criteria. Verify nothing is orphaned — if a folder exists
 but `SKILL.md` never mentions it, it will simply never be used.
+
+**Path style depends on where the skill lives** (Step 1, question 7). A skill
+nested inside an existing plugin may use `${CLAUDE_PLUGIN_ROOT}/skills/<name>/...`
+for references to its *own* files — that variable resolves to the plugin that
+owns the file being read, so it can never reach into a different plugin. A
+project-level or personal skill outside any plugin has no `${CLAUDE_PLUGIN_ROOT}`
+to resolve at all. Either way, use plain relative paths (`references/...`,
+`scripts/...`, `agents/grader.md`) for anything the new skill needs at
+run time — every wiring instruction below stays inside the new skill's own
+folder, never reaching back into g14-skill-creator's.
 
 Quick wiring reference:
 
@@ -163,7 +177,7 @@ Quick wiring reference:
 | 2       | "Run: python scripts/<name>.py <args>. Improvise only if it fails, and report the failure."        |
 | 3       | "Load assets/<template>. Fill every {{SLOT}}. Do not change the structure."                        |
 | 4       | "Dispatch one general-purpose subagent per <unit-of-work>, all in parallel, model: haiku."         |
-| 5       | "Before delivering output, dispatch a fresh grader subagent per file in tests/, in parallel — `model: sonnet`, follow `agents/grader.md`." |
+| 5       | "Before delivering output, dispatch a fresh grader subagent per file in tests/, in parallel — `model: sonnet`, `effort: high`, follow the vendored `agents/grader.md`." |
 
 ### Step 6 — Verify and iterate
 

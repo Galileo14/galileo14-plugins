@@ -278,6 +278,15 @@ For each item, return: { id, passed, evidence }.
 Quote the supporting source text. Flag failures — do not silently fix them.
 ```
 
+**Vendor the grader contract.** Copy this skill's `agents/grader.md` into the
+new skill's own `agents/grader.md` — a local copy, not a cross-plugin
+reference. `${CLAUDE_PLUGIN_ROOT}` resolves to the plugin that *owns the file
+being read*, so a new skill living in a different plugin (or as a
+project-level/personal skill outside any plugin) could never resolve a path
+back into g14-skill-creator's plugin. Vendoring keeps every scaffolded skill
+self-contained — the same pattern already used by the sibling `g14-skill-audit`
+skill for its own grader.
+
 Wiring (in the skill under test):
 
 ```markdown
@@ -288,6 +297,7 @@ in fresh context — NOT the agent that produced the output.
 Dispatch config (mirror the grader's frontmatter — skill-nested agents are not
 auto-registered):
   model: sonnet
+  effort: high
   tools: Read, Glob, Grep
   subagent_type: general-purpose
 
@@ -297,7 +307,7 @@ Inputs to pass in the prompt:
   3. skill_context — one sentence on what the skill does (optional).
 
 Tell the subagent to follow the grader instruction file:
-${CLAUDE_PLUGIN_ROOT}/skills/g14-skill-creator/agents/grader.md
+agents/grader.md (the local vendored copy inside this skill)
 
 The grader returns strict JSON with per-item pass/fail and evidence. Collect
 all gradings. If any item fails any criteria file, flag it with the grader's evidence

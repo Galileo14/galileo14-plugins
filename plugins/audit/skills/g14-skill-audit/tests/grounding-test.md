@@ -12,8 +12,12 @@ in "Per-control findings" and "Cross-cutting findings". PASS a finding only if:
   field has the stated value. Open the file and confirm.
 - The defect described is **real**. Re-read the cited location and verify the
   problem is actually there and you didn't misread it.
-- Any claim that a control is a GAP is backed by the control genuinely being
-  absent or unwired in the scan AND argued as NEEDED, not asserted.
+- Any claim that a control is a GAP cites evidence that the control is
+  genuinely absent or unwired, and that evidence checks out against the scan.
+  Where the finding also argues the control is NEEDED, the evidence cited
+  *inside* that argument is real (whether a NEEDED argument was made at all is
+  calibration's check, not this one: don't fail a finding here for missing
+  one).
 - No referenced path, agent name, model value, or quoted text is fabricated.
 
 For each finding return `{ id, passed, evidence }`, where `evidence` quotes what

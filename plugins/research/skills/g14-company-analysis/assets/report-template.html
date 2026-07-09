@@ -1166,10 +1166,12 @@
               </dl>
             </header>
 
-            <!-- BANNER OPCIONAL — Si los tests devuelven warnings, el orquestador inserta este bloque. Si los tests están limpios, BÓRRALO entero. -->
+            <!-- BANNER OPCIONAL — el synthesizer siempre deja este bloque envuelto en marcadores BANNER-OFF (comentado). El orquestador (skill, Fase 5) lo activa con un Edit que sustituye los marcadores por cadena vacía solo si los graders devuelven warnings; si los tests están limpios, se deja tal cual (comentado, invisible en el HTML final). -->
+            <!-- BANNER-OFF
             <div class="banner">
               <div><strong>Verificación parcial:</strong> {{BANNER_MESSAGE}}</div>
             </div>
+            BANNER-OFF -->
 
             <!-- EXECUTIVE SNAPSHOT — golpe de vista visual. Cifras derivadas de slots existentes. -->
             <section class="exec-snapshot" aria-label="Resumen visual">

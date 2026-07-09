@@ -55,6 +55,8 @@ verbatim in the format your agent file specifies.
 
 Set `description` to `"Architecture audit — <project name>"`. Do NOT override the agent's model/effort/tools — they are fixed in the agent frontmatter for a reason.
 
+If the `Task` call errors, times out, or the returned report doesn't match the agent's documented output shape (`# Architecture Analysis` / `## Summary` / `## Findings`), stop and tell the user the audit could not complete. Never write a partial or fabricated report.
+
 ### 3 · Consolidate the final report
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-architecture-audit/assets/report-template.md`. Fill every placeholder using the agent's output:

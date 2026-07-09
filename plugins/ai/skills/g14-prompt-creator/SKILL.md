@@ -35,7 +35,7 @@ Apply the detection rules in `${CLAUDE_PLUGIN_ROOT}/skills/g14-prompt-creator/re
 
 ### Step 3 — Dispatch to the framework applier subagent
 
-Spawn ONE `general-purpose` subagent with `model: sonnet` (prompt craft is judgement work — Sonnet is the right tier; Haiku underperforms here, Opus is overkill).
+Spawn ONE `general-purpose` subagent with `model: sonnet, effort: medium` (prompt craft is judgement work — Sonnet is the right tier; Haiku underperforms here, Opus is overkill. Skill-nested agents are NOT auto-registered, so effort must be set explicitly at dispatch; raise to `high` if RISEN outputs feel underpowered in practice).
 
 - `description`: `Apply {FRAMEWORK} framework` (e.g. `Apply COSTAR framework`)
 - `prompt`:

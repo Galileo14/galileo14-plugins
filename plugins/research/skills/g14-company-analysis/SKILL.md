@@ -25,8 +25,9 @@ All agents use Haiku (set in their frontmatter). The skill just fires them.
 ### Phase 1 — Capture the company
 
 - If the user hasn't provided the name, ask in a single line. If they haven't provided the web domain, try to infer it from the first sentence and confirm in one line (without researching anything yet).
-- Generate a `slug` in kebab-case from the trade name. No accents, no punctuation, max 5 words. E.g.: "Grupo Billingham" → `grupo-billingham`.
+- Generate a `slug` deterministically from the trade name only: strip diacritics (NFKD), lowercase, collapse any run of non-alphanumeric characters into a single hyphen, keep only the first 5 words. E.g.: "Grupo Billingham" → `grupo-billingham`.
 - Detect the user's language; the final report will be in that language. Default to **English** if unclear.
+- **Preflight:** before creating any folder or firing a single researcher, confirm `${CLAUDE_PLUGIN_ROOT}/skills/g14-company-analysis/assets/report-template.html` exists and is readable (a quick `Read`). If it's missing or unreadable, stop here and report it — do not fire the Phase 2 fan-out against a broken pipeline.
 - Create in the CWD:
 
 ```
@@ -66,7 +67,7 @@ For each, invoke `Task` with `subagent_type: <agent-name>` and a prompt that sup
 
 The agents own the methodology (queries, URLs to visit, signals to extract, anti-hallucination rules, findings file structure). You don't repeat any of that here.
 
-When all 11 finish, verify the 11 files exist in `research/{slug}/findings/`. If any is missing, **relaunch only that agent** with the same prompt.
+When all 11 finish, verify the 11 files exist in `research/{slug}/findings/`. If any is missing, **relaunch only that agent** with the same prompt — **once**. If the relaunch also fails, stop and report which dimension(s) could not be researched, offering to proceed with the remaining findings or abort.
 
 ### Phase 3 — Synthesis into HTML template (1 call)
 

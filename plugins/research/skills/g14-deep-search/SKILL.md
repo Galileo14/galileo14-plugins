@@ -85,7 +85,7 @@ For each of the 10 angles, invoke `Task` with `subagent_type: web-searcher` and 
 
 The agent handles the rest: WebSearch per query, deduplication, WebFetch on the substantial sources, structured findings file, anti-hallucination rules.
 
-When all 10 finish, verify the 10 files exist. If any failed, relaunch **only that angle**.
+When all 10 finish, verify the 10 files exist. If any failed, relaunch **only that angle** — up to 2 relaunches per angle. If it still fails after 2 relaunches, stop retrying: mark that angle as skipped and proceed with the remaining findings. Note the shortfall (e.g. "9/10 angles covered") in the Phase 6 presentation message.
 
 ### 4. Synthesize via `research-synthesizer` (1 call)
 
@@ -125,6 +125,8 @@ Document: `research/{slug}/{slug}.md` ({words} words)
 Want me to dig deeper into a specific angle, export to another format, or run more queries in a particular area?
 ```
 
+If one or more angles were skipped after hitting the 2-relaunch cap (see Phase 3), replace the "50 queries run across 10 angles" line with the actual coverage, e.g. "45 queries run across 9/10 angles (1 angle skipped after repeated failures)".
+
 ## Language rule
 
 **Output language: match the language the user is using in the current conversation. Default to English if unclear.**
@@ -144,8 +146,8 @@ Apply the language setting to:
 
 ## Quick troubleshooting
 
-- **A `web-searcher` didn't write its file:** relaunch only that angle with the same prompt.
-- **Several `web-searcher` invocations fail at once:** likely rate limit. Wait 1-2 min, relaunch only failed ones.
+- **A `web-searcher` didn't write its file:** relaunch only that angle with the same prompt — up to 2 relaunches. Still failing after that? Stop, mark the angle skipped, and continue with the rest.
+- **Several `web-searcher` invocations fail at once:** likely rate limit. Wait 1-2 min, relaunch only failed ones (same 2-relaunch cap per angle). If any are still failing after that, proceed without them and flag the skipped angles.
 - **Synthesizer produces a short/collage document:** retry with "minimum 3500 words, minimum 350 per section, convert bullets to prose". If it keeps failing, escalate that single call to `sonnet`.
 - **A query returns 0 useful results:** acceptable. The `web-searcher` notes it as "no useful results" and continues.
 - **Results saturated with SEO/spam:** add operators to the queries (`site:arxiv.org`, specific year, technical terms).

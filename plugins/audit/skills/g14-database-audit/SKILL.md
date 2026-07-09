@@ -31,10 +31,16 @@ Then canonicalize and prepare output:
 
 ```bash
 TARGET=$(cd "<inferred>" && pwd)
+if [ -z "$TARGET" ] || [ ! -d "$TARGET" ]; then
+  echo "ERROR: could not resolve target path" >&2
+  exit 1
+fi
 mkdir -p "$TARGET/reports"
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)
 REPORT_PATH="$TARGET/reports/database-audit-$TIMESTAMP.md"
 ```
+
+If that guard fires, stop and tell the user the target path couldn't be resolved — don't fall back to a default or guess.
 
 Confirm in one line **only if the target wasn't explicit**. If the user said "audit `/exact/path`", just launch.
 
@@ -55,16 +61,18 @@ in the format your agent file specifies.
 
 Set `description` to `"Database audit — <project name>"`. Do NOT override the agent's model/effort/tools — they are fixed in the agent frontmatter for a reason.
 
+If the `Task` call errors, times out, or returns no report, stop and tell the user the audit could not complete — don't fabricate findings or retry silently.
+
 ### 3 · Consolidate the final report
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-database-audit/assets/report-template.md`. Fill every placeholder using the agent's output:
+Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-database-audit/assets/report-template.md`. Fill every placeholder using the agent's output. If an expected section (e.g. "Notes & caveats") is missing from the agent's output, write "Not reported" in its place — never invent content.
 
 - **Executive summary** — write fresh from the agent's Summary and Overall rating. Highlight the biggest data-integrity or reliability risk in one clear sentence.
 - **Top findings table** — pick the top 3 findings by severity × blast radius.
 - **Severity counts** — real numbers per severity bucket.
 - **Findings section** — paste the agent's findings verbatim, preserving their CRITICAL → HIGH → MEDIUM → LOW → INFO ordering.
 - **Prioritized action plan** — build from effort × severity × blast radius. "Do first" = CRITICAL/HIGH with S/M effort + anything risking data loss/corruption/breach. "Do next" = HIGH with L effort + MEDIUM that compounds. "Backlog" = LOW + INFO + opportunistic.
-- **Methodology caveats** — copy the agent's "Notes & caveats" section verbatim.
+- **Methodology caveats** — copy the agent's "Notes & caveats" section verbatim, or "Not reported" if the agent's output doesn't include it.
 - **Output language** — report prose matches the language the user is using in the current conversation. Default to English if unclear. Severity labels (CRITICAL / HIGH / MEDIUM / LOW / INFO) always stay in English — they are greppable constants.
 
 Save with `Write` to `$REPORT_PATH`.

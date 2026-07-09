@@ -16,7 +16,7 @@ description: >
 
 Thin runner. The `security-auditor` agent at `${CLAUDE_PLUGIN_ROOT}/agents/security-auditor.md` is the **source of truth** for the security lens (what to look for, severity rubric, output contract). This skill only resolves the target, invokes the agent, and consolidates its output into the deliverable report.
 
-## Pipeline (4 steps)
+## Pipeline (5 steps)
 
 ### 1 · Resolve target
 
@@ -30,11 +30,17 @@ Infer the target path from the user message:
 Then canonicalize and prepare output:
 
 ```bash
-TARGET=$(cd "<inferred>" && pwd)
+TARGET=$(cd "<inferred>" 2>/dev/null && pwd)
+if [ -z "$TARGET" ]; then
+  echo "Target path not found or not a directory — stopping." >&2
+  exit 1
+fi
 mkdir -p "$TARGET/reports"
 TIMESTAMP=$(date +%Y-%m-%d-%H%M)
 REPORT_PATH="$TARGET/reports/security-audit-$TIMESTAMP.md"
 ```
+
+If the resolved path doesn't exist, stop and tell the user instead of proceeding — never let a bad path silently fall through to `mkdir -p` at an unintended location.
 
 Confirm in one line **only if the target wasn't explicit**. If the user said "audit `/exact/path`", just launch.
 
@@ -69,7 +75,23 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/g14-security-audit/assets/report-template.md`
 
 Save the filled report with `Write` to `$REPORT_PATH`.
 
-### 4 · Report back
+### 4 · Verify the CRITICAL/HIGH findings
+
+Findings are wrong-but-plausible claims (file:line citations, severity, descriptions) until someone checks them against the actual code. Before reporting back, dispatch **one fresh `general-purpose` subagent** (model `sonnet`, effort `low`, tools `Read`, `Grep`, `Glob` only) with:
+
+```
+target_path: {{TARGET}}
+findings: {{the report's CRITICAL and HIGH findings, verbatim}}
+
+For each finding, open the cited file:line in target_path and confirm the
+described issue is actually present. Reply with one line per finding:
+CONFIRMED, NOT FOUND, or PARTIAL (cite what you saw instead) — no other
+commentary.
+```
+
+For any finding the verifier marks NOT FOUND or PARTIAL, downgrade its `Confidence` to `low` in the saved report (or drop it if clearly wrong) before moving on. Don't re-run this on MEDIUM/LOW/INFO — the cost isn't worth it at that severity.
+
+### 5 · Report back
 
 Brief chat message only — the full report is in the file:
 

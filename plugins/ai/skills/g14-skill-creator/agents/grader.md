@@ -2,6 +2,7 @@
 name: grader
 description: Fresh-context LLM-as-judge grader for tests/ evaluation criteria. Reads one criteria file and one output, returns strict JSON with per-item pass/fail and evidence.
 model: sonnet
+effort: high
 tools: Read, Glob, Grep
 ---
 
