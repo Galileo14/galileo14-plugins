@@ -1,7 +1,7 @@
 {
   "name": "g14-research",
   "description": "Research and intelligence gathering skills: company dossiers, deep multi-source research, fact-checking and quick panoramic searches.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": { "name": "Galileo14", "email": "info@galileo14.com" },
   "homepage": "https://galileo14.com",
   "license": "MIT"
