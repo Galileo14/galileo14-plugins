@@ -1,5 +1,5 @@
 {
-  "name": "audit",
+  "name": "g14-audit",
   "description": "Audits for Galileo14: five codebase lenses — security, scalability, architecture, clean-code and database, each a focused subagent — plus g14-full-audit, which runs any combination of them in parallel and merges a combined markdown+HTML report, and g14-skill-audit, which reviews Claude Code skills against the five-controls framework and best practices.",
   "version": "0.4.0",
   "author": { "name": "Galileo14", "email": "info@galileo14.com" },

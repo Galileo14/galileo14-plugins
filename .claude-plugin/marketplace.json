@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "research",
+      "name": "g14-research",
       "source": "./plugins/research",
       "description": "Research and intelligence gathering: company dossiers, deep multi-source research, fact-checking and quick panoramic searches. Fans out platform-specific researcher agents in parallel and grades the result before delivery. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
@@ -21,7 +21,7 @@
       "keywords": ["research", "company-analysis", "fact-check", "web-search", "dossier"]
     },
     {
-      "name": "ai",
+      "name": "g14-ai",
       "source": "./plugins/ai",
       "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks) and deterministic skill scaffolding. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
@@ -34,7 +34,7 @@
       "keywords": ["prompt-engineering", "skills", "claude", "meta-tooling", "scaffolding"]
     },
     {
-      "name": "audit",
+      "name": "g14-audit",
       "source": "./plugins/audit",
       "description": "Codebase audits through five focused lenses — security, scalability, architecture, clean-code and database, each a dedicated subagent — plus a full-audit orchestrator that runs any combination in parallel with a combined markdown+HTML report, and a skill auditor that reviews Claude Code skills against the five-controls framework. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
