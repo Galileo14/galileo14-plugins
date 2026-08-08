@@ -22,7 +22,8 @@ All plugins, skills and their folders use the `g14-` prefix.
   platform-specific researcher agents in parallel and grades the result before
   delivery.
 - `g14-ai` — meta-tooling for working with Claude (prompt engineering with CAR,
-  COSTAR & RISEN frameworks; deterministic skill scaffolding).
+  COSTAR & RISEN frameworks; deterministic skill scaffolding; local HTML
+  visual plans in `.plans/`).
 - `g14-audit` — codebase audits through five focused lenses (security,
   scalability, architecture, clean-code, database), a full-audit orchestrator,
   and a Claude Code skill auditor.

@@ -9,7 +9,7 @@ Public Claude Code plugin marketplace for **Galileo14**. Client-facing skills, a
 | Plugin | Skills | Purpose |
 |---|---|---|
 | `g14-research` | `g14-company-analysis`, `g14-deep-search`, `g14-fact-check`, `g14-quick-search` | Research and intelligence gathering — company dossiers, deep multi-source research, fact-checking, quick searches. |
-| `g14-ai` | `g14-prompt-creator`, `g14-skill-creator` | Meta-tooling for working with Claude — prompt engineering (CAR, COSTAR, RISEN) and deterministic skill scaffolding. |
+| `g14-ai` | `g14-prompt-creator`, `g14-skill-creator`, `g14-visual-plan` | Meta-tooling for working with Claude — prompt engineering (CAR, COSTAR, RISEN), deterministic skill scaffolding, and local HTML visual plans. |
 | `g14-audit` | `g14-architecture-audit`, `g14-clean-code-audit`, `g14-database-audit`, `g14-full-audit`, `g14-scalability-audit`, `g14-security-audit`, `g14-skill-audit` | Codebase audits through five focused lenses plus a full-audit orchestrator and a Claude Code skill auditor. |
 
 All skills are written in English so they install cleanly anywhere, but every skill is instructed to **produce its output in the language of the user's current conversation** (defaulting to English when unclear).
