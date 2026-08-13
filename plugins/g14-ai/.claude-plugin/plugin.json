@@ -1,7 +1,7 @@
 {
   "name": "g14-ai",
-  "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks), deterministic skill scaffolding, and local HTML visual plans.",
-  "version": "0.2.0",
+  "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks) and deterministic skill scaffolding.",
+  "version": "0.3.0",
   "author": { "name": "Galileo14", "email": "info@galileo14.com" },
   "homepage": "https://galileo14.com",
   "license": "MIT"

@@ -23,7 +23,7 @@
     {
       "name": "g14-ai",
       "source": "./plugins/g14-ai",
-      "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks), deterministic skill scaffolding, and local HTML visual plans. Output adapts to the user's language.",
+      "description": "Meta-tooling for working with Claude: prompt engineering (CAR, COSTAR & RISEN frameworks) and deterministic skill scaffolding. Output adapts to the user's language.",
       "homepage": "https://github.com/Galileo14/galileo14-plugins",
       "repository": "https://github.com/Galileo14/galileo14-plugins",
       "author": {
