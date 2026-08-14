@@ -1,0 +1,8 @@
+{
+  "name": "g14-conversation",
+  "description": "Response transformers: rewrite Claude's answer on demand — simplified technical language (STE/ETS), ELI5, clipped, simplified, extended, explanatory or full teaching mode.",
+  "version": "0.1.0",
+  "author": { "name": "Galileo14", "email": "info@galileo14.com" },
+  "homepage": "https://galileo14.com",
+  "license": "MIT"
+}

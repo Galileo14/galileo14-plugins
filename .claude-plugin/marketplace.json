@@ -45,6 +45,19 @@
       },
       "category": "code-quality",
       "keywords": ["audit", "security", "scalability", "architecture", "clean-code", "database", "full-audit", "skill-audit"]
+    },
+    {
+      "name": "g14-conversation",
+      "source": "./plugins/g14-conversation",
+      "description": "Response transformers: rewrite Claude's answer on demand — simplified technical language (STE/ETS), ELI5, clipped to the point, fully simplified, extended with more depth, explanatory teaching mode, or a complete mini-lesson. Each skill transforms the answer to the current input, or the previous response when invoked bare. Output adapts to the user's language.",
+      "homepage": "https://github.com/Galileo14/galileo14-plugins",
+      "repository": "https://github.com/Galileo14/galileo14-plugins",
+      "author": {
+        "name": "Galileo14",
+        "email": "info@galileo14.com"
+      },
+      "category": "conversation",
+      "keywords": ["ste", "eli5", "simplify", "summarize", "explain", "teach", "response-transformer"]
     }
   ]
 }

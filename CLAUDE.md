@@ -26,6 +26,9 @@ All plugins, skills and their folders use the `g14-` prefix.
 - `g14-audit` — codebase audits through five focused lenses (security,
   scalability, architecture, clean-code, database), a full-audit orchestrator,
   and a Claude Code skill auditor.
+- `g14-conversation` — response transformers: each skill rewrites the answer
+  to the current input (or the previous response when invoked bare) — STE/ETS,
+  ELI5, clip, simplify, extend, explain, teach.
 
 ## Versioning rule
 
